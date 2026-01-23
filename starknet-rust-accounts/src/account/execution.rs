@@ -5,9 +5,10 @@ use super::{
 use crate::ExecutionEncoder;
 
 use starknet_rust_core::types::{
-    BroadcastedInvokeTransactionV3, BroadcastedTransaction, Call, DataAvailabilityMode,
-    FeeEstimate, Felt, InvokeTransactionResult, ResourceBounds, ResourceBoundsMapping,
-    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee,
+    BroadcastedInvokeProof, BroadcastedInvokeTransactionV3, BroadcastedTransaction, Call,
+    DataAvailabilityMode, FeeEstimate, Felt, InvokeTransactionResult, InvokeTransactionV3,
+    ResourceBounds, ResourceBoundsMapping, SimulatedTransaction, SimulationFlag,
+    SimulationFlagForEstimateFee,
 };
 use starknet_rust_crypto::PoseidonHasher;
 use starknet_rust_providers::Provider;
@@ -640,40 +641,48 @@ where
         query_only: bool,
         skip_signature: bool,
     ) -> Result<BroadcastedInvokeTransactionV3, A::SignError> {
+        // Note: is_query was removed in spec 0.10.1, query_only is now handled differently
+        let _ = query_only; // Suppress unused warning
         Ok(BroadcastedInvokeTransactionV3 {
-            sender_address: self.account.address(),
-            calldata: self.account.encode_calls(&self.inner.calls),
-            signature: if skip_signature {
-                vec![]
-            } else {
-                self.account
-                    .sign_execution_v3(&self.inner, query_only)
-                    .await?
+            invoke_txn_v3: InvokeTransactionV3 {
+                sender_address: self.account.address(),
+                calldata: self.account.encode_calls(&self.inner.calls),
+                signature: if skip_signature {
+                    vec![]
+                } else {
+                    self.account
+                        .sign_execution_v3(&self.inner, query_only)
+                        .await?
+                },
+                nonce: self.inner.nonce,
+                resource_bounds: ResourceBoundsMapping {
+                    l1_gas: ResourceBounds {
+                        max_amount: self.inner.l1_gas,
+                        max_price_per_unit: self.inner.l1_gas_price,
+                    },
+                    l1_data_gas: ResourceBounds {
+                        max_amount: self.inner.l1_data_gas,
+                        max_price_per_unit: self.inner.l1_data_gas_price,
+                    },
+                    l2_gas: ResourceBounds {
+                        max_amount: self.inner.l2_gas,
+                        max_price_per_unit: self.inner.l2_gas_price,
+                    },
+                },
+                tip: self.inner.tip,
+                // Hard-coded empty `paymaster_data`
+                paymaster_data: vec![],
+                // Hard-coded empty `account_deployment_data`
+                account_deployment_data: vec![],
+                // Hard-coded L1 DA mode for nonce and fee
+                nonce_data_availability_mode: DataAvailabilityMode::L1,
+                fee_data_availability_mode: DataAvailabilityMode::L1,
+                // No proof_facts for broadcasted transactions
+                proof_facts: None,
+                // Transaction hash will be computed by the sequencer
+                transaction_hash: Felt::ZERO,
             },
-            nonce: self.inner.nonce,
-            resource_bounds: ResourceBoundsMapping {
-                l1_gas: ResourceBounds {
-                    max_amount: self.inner.l1_gas,
-                    max_price_per_unit: self.inner.l1_gas_price,
-                },
-                l1_data_gas: ResourceBounds {
-                    max_amount: self.inner.l1_data_gas,
-                    max_price_per_unit: self.inner.l1_data_gas_price,
-                },
-                l2_gas: ResourceBounds {
-                    max_amount: self.inner.l2_gas,
-                    max_price_per_unit: self.inner.l2_gas_price,
-                },
-            },
-            tip: self.inner.tip,
-            // Hard-coded empty `paymaster_data`
-            paymaster_data: vec![],
-            // Hard-coded empty `account_deployment_data`
-            account_deployment_data: vec![],
-            // Hard-coded L1 DA mode for nonce and fee
-            nonce_data_availability_mode: DataAvailabilityMode::L1,
-            fee_data_availability_mode: DataAvailabilityMode::L1,
-            is_query: query_only,
+            broadcasted_invoke_proof: BroadcastedInvokeProof { proof: None },
         })
     }
 }

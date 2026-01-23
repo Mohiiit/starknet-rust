@@ -171,7 +171,12 @@ impl StreamReadDriver {
 
                 match parsed_message {
                     StreamUpdateOrResponse::StreamUpdate(stream_update) => {
-                        match self.registry.get_mut(stream_update.data.subscription_id()) {
+                        let sub_stream = stream_update
+                            .data
+                            .subscription_id()
+                            .as_ref()
+                            .and_then(|id| self.registry.get_mut(id));
+                        match sub_stream {
                             Some(sub_stream) => {
                                 if sub_stream.send(stream_update.data).is_err() {
                                     // Subscriptions getting dropped should automatically trigger

@@ -183,7 +183,12 @@ impl StreamWriteDriver {
                                     from_address: options.from_address,
                                     keys: options.keys,
                                     block_id: Some(options.block_id),
-                                    finality_status: Some(options.finality_status),
+                                    // Convert finality status to string
+                                    finality_status: Some(match options.finality_status {
+                                        L2TransactionFinalityStatus::PreConfirmed => "PRE_CONFIRMED".to_string(),
+                                        L2TransactionFinalityStatus::AcceptedOnL2 => "ACCEPTED_ON_L2".to_string(),
+                                        L2TransactionFinalityStatus::AcceptedOnL1 => "ACCEPTED_ON_L1".to_string(),
+                                    }),
                                 })
                             }
                             SubscribeWriteData::TransactionStatus { transaction_hash } => {
@@ -207,6 +212,7 @@ impl StreamWriteDriver {
                                 SubscribeNewTransactionsRequest {
                                     finality_status,
                                     sender_address,
+                                    tags: None,
                                 },
                             ),
                         },

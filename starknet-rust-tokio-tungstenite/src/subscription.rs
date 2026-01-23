@@ -190,10 +190,14 @@ impl NewHeadsSubscription {
     pub async fn recv(&mut self) -> Result<NewHeadsUpdate, SubscriptionReceiveError> {
         match self.inner.stream.recv().await {
             Some(StreamUpdateData::SubscriptionNewHeads(update)) => {
-                Ok(NewHeadsUpdate::NewHeader(update.result))
+                update.result.map(NewHeadsUpdate::NewHeader).ok_or(
+                    SubscriptionReceiveError::MissingResult,
+                )
             }
             Some(StreamUpdateData::SubscriptionReorg(update)) => {
-                Ok(NewHeadsUpdate::Reorg(update.result))
+                update.result.map(NewHeadsUpdate::Reorg).ok_or(
+                    SubscriptionReceiveError::MissingResult,
+                )
             }
             Some(StreamUpdateData::SubscriptionEvents(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {
@@ -238,10 +242,14 @@ impl EventsSubscription {
     pub async fn recv(&mut self) -> Result<EventsUpdate, SubscriptionReceiveError> {
         match self.inner.stream.recv().await {
             Some(StreamUpdateData::SubscriptionEvents(update)) => {
-                Ok(EventsUpdate::Event(update.result))
+                update.result.map(EventsUpdate::Event).ok_or(
+                    SubscriptionReceiveError::MissingResult,
+                )
             }
             Some(StreamUpdateData::SubscriptionReorg(update)) => {
-                Ok(EventsUpdate::Reorg(update.result))
+                update.result.map(EventsUpdate::Reorg).ok_or(
+                    SubscriptionReceiveError::MissingResult,
+                )
             }
             Some(StreamUpdateData::SubscriptionNewHeads(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {
@@ -286,10 +294,14 @@ impl TransactionStatusSubscription {
     pub async fn recv(&mut self) -> Result<TransactionStatusUpdate, SubscriptionReceiveError> {
         match self.inner.stream.recv().await {
             Some(StreamUpdateData::SubscriptionTransactionStatus(update)) => {
-                Ok(TransactionStatusUpdate::Status(update.result))
+                update.result.map(TransactionStatusUpdate::Status).ok_or(
+                    SubscriptionReceiveError::MissingResult,
+                )
             }
             Some(StreamUpdateData::SubscriptionReorg(update)) => {
-                Ok(TransactionStatusUpdate::Reorg(update.result))
+                update.result.map(TransactionStatusUpdate::Reorg).ok_or(
+                    SubscriptionReceiveError::MissingResult,
+                )
             }
             Some(StreamUpdateData::SubscriptionNewHeads(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {
@@ -334,10 +346,14 @@ impl NewTransactionReceiptsSubscription {
     pub async fn recv(&mut self) -> Result<NewTransactionReceiptsUpdate, SubscriptionReceiveError> {
         match self.inner.stream.recv().await {
             Some(StreamUpdateData::SubscriptionNewTransactionReceipts(update)) => {
-                Ok(NewTransactionReceiptsUpdate::Receipt(update.result))
+                update.result.map(NewTransactionReceiptsUpdate::Receipt).ok_or(
+                    SubscriptionReceiveError::MissingResult,
+                )
             }
             Some(StreamUpdateData::SubscriptionReorg(update)) => {
-                Ok(NewTransactionReceiptsUpdate::Reorg(update.result))
+                update.result.map(NewTransactionReceiptsUpdate::Reorg).ok_or(
+                    SubscriptionReceiveError::MissingResult,
+                )
             }
             Some(StreamUpdateData::SubscriptionNewHeads(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {
@@ -394,10 +410,14 @@ impl NewTransactionsSubscription {
     pub async fn recv(&mut self) -> Result<NewTransactionsUpdate, SubscriptionReceiveError> {
         match self.inner.stream.recv().await {
             Some(StreamUpdateData::SubscriptionNewTransaction(update)) => {
-                Ok(NewTransactionsUpdate::Transaction(update.result))
+                update.result.map(NewTransactionsUpdate::Transaction).ok_or(
+                    SubscriptionReceiveError::MissingResult,
+                )
             }
             Some(StreamUpdateData::SubscriptionReorg(update)) => {
-                Ok(NewTransactionsUpdate::Reorg(update.result))
+                update.result.map(NewTransactionsUpdate::Reorg).ok_or(
+                    SubscriptionReceiveError::MissingResult,
+                )
             }
             Some(StreamUpdateData::SubscriptionNewHeads(_)) => {
                 Err(SubscriptionReceiveError::UnexpectedType {

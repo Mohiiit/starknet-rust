@@ -43,6 +43,8 @@ pub enum SubscriptionReceiveError {
         /// The actual update type received.
         actual: StreamUpdateType,
     },
+    /// The update contained no result data.
+    MissingResult,
 }
 
 /// Error type for unsubscription failures.
@@ -127,6 +129,9 @@ impl std::fmt::Display for SubscriptionReceiveError {
                 }
 
                 Ok(())
+            }
+            Self::MissingResult => {
+                write!(f, "subscription update contained no result data")
             }
         }
     }

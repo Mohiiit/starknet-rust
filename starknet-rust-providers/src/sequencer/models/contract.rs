@@ -95,7 +95,8 @@ impl CompressedSierraClass {
             sierra_program: compressed_program,
             contract_class_version: flattened_class.contract_class_version.clone(),
             entry_points_by_type: flattened_class.entry_points_by_type.clone(),
-            abi: flattened_class.abi.clone(),
+            // abi is now Optional in spec 0.10.1
+            abi: flattened_class.abi.clone().unwrap_or_default(),
         })
     }
 }

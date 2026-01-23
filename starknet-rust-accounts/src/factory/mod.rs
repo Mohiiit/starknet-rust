@@ -800,6 +800,8 @@ where
         query_only: bool,
         skip_signature: bool,
     ) -> Result<BroadcastedDeployAccountTransactionV3, F::SignError> {
+        // Note: is_query was removed in spec 0.10.1, query_only is now handled differently
+        let _ = query_only; // Suppress unused warning
         Ok(BroadcastedDeployAccountTransactionV3 {
             signature: if skip_signature {
                 vec![]
@@ -832,7 +834,8 @@ where
             // Hard-coded L1 DA mode for nonce and fee
             nonce_data_availability_mode: DataAvailabilityMode::L1,
             fee_data_availability_mode: DataAvailabilityMode::L1,
-            is_query: query_only,
+            // Transaction hash will be computed by the sequencer
+            transaction_hash: Felt::ZERO,
         })
     }
 }

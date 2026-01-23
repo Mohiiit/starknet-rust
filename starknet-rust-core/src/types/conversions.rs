@@ -47,7 +47,7 @@ impl From<LegacyContractAbiEntry> for RawLegacyAbiEntry {
                     .into_iter()
                     .map(|item| RawLegacyMember {
                         name: item.name,
-                        offset: item.offset,
+                        offset: item.offset.unwrap_or(0),
                         r#type: item.r#type,
                     })
                     .collect(),
@@ -80,17 +80,10 @@ impl From<InvokeTransaction> for InvokeTransactionContent {
     }
 }
 
-impl From<L1HandlerTransaction> for L1HandlerTransactionContent {
-    fn from(value: L1HandlerTransaction) -> Self {
-        Self {
-            version: value.version,
-            nonce: value.nonce,
-            contract_address: value.contract_address,
-            entry_point_selector: value.entry_point_selector,
-            calldata: value.calldata,
-        }
-    }
-}
+// NOTE: Removed in 0.10.1 - L1HandlerTransactionContent is now the same as L1HandlerTransaction
+// impl From<L1HandlerTransaction> for L1HandlerTransactionContent {
+//     fn from(value: L1HandlerTransaction) -> Self { ... }
+// }
 
 impl From<DeclareTransaction> for DeclareTransactionContent {
     fn from(value: DeclareTransaction) -> Self {
@@ -103,16 +96,8 @@ impl From<DeclareTransaction> for DeclareTransactionContent {
     }
 }
 
-impl From<DeployTransaction> for DeployTransactionContent {
-    fn from(value: DeployTransaction) -> Self {
-        Self {
-            version: value.version,
-            contract_address_salt: value.contract_address_salt,
-            constructor_calldata: value.constructor_calldata,
-            class_hash: value.class_hash,
-        }
-    }
-}
+// NOTE: Removed in 0.10.1 - DeployTransactionContent is now the same as DeployTransaction
+// impl From<DeployTransaction> for DeployTransactionContent { ... }
 
 impl From<DeployAccountTransaction> for DeployAccountTransactionContent {
     fn from(value: DeployAccountTransaction) -> Self {
@@ -123,127 +108,17 @@ impl From<DeployAccountTransaction> for DeployAccountTransactionContent {
     }
 }
 
-impl From<InvokeTransactionV0> for InvokeTransactionV0Content {
-    fn from(value: InvokeTransactionV0) -> Self {
-        Self {
-            max_fee: value.max_fee,
-            signature: value.signature,
-            contract_address: value.contract_address,
-            entry_point_selector: value.entry_point_selector,
-            calldata: value.calldata,
-        }
-    }
-}
+// NOTE: The following From implementations are removed in 0.10.1 because
+// *Content types are now aliases to the main transaction types (they include transaction_hash).
+// The Content types were previously used for transactions without the hash field.
+// In 0.10.1, all transaction types include transaction_hash directly.
 
-impl From<InvokeTransactionV1> for InvokeTransactionV1Content {
-    fn from(value: InvokeTransactionV1) -> Self {
-        Self {
-            sender_address: value.sender_address,
-            calldata: value.calldata,
-            max_fee: value.max_fee,
-            signature: value.signature,
-            nonce: value.nonce,
-        }
-    }
-}
-
-impl From<InvokeTransactionV3> for InvokeTransactionV3Content {
-    fn from(value: InvokeTransactionV3) -> Self {
-        Self {
-            sender_address: value.sender_address,
-            calldata: value.calldata,
-            signature: value.signature,
-            nonce: value.nonce,
-            resource_bounds: value.resource_bounds,
-            tip: value.tip,
-            paymaster_data: value.paymaster_data,
-            account_deployment_data: value.account_deployment_data,
-            nonce_data_availability_mode: value.nonce_data_availability_mode,
-            fee_data_availability_mode: value.fee_data_availability_mode,
-        }
-    }
-}
-
-impl From<DeclareTransactionV0> for DeclareTransactionV0Content {
-    fn from(value: DeclareTransactionV0) -> Self {
-        Self {
-            sender_address: value.sender_address,
-            max_fee: value.max_fee,
-            signature: value.signature,
-            class_hash: value.class_hash,
-        }
-    }
-}
-
-impl From<DeclareTransactionV1> for DeclareTransactionV1Content {
-    fn from(value: DeclareTransactionV1) -> Self {
-        Self {
-            sender_address: value.sender_address,
-            max_fee: value.max_fee,
-            signature: value.signature,
-            nonce: value.nonce,
-            class_hash: value.class_hash,
-        }
-    }
-}
-
-impl From<DeclareTransactionV2> for DeclareTransactionV2Content {
-    fn from(value: DeclareTransactionV2) -> Self {
-        Self {
-            sender_address: value.sender_address,
-            compiled_class_hash: value.compiled_class_hash,
-            max_fee: value.max_fee,
-            signature: value.signature,
-            nonce: value.nonce,
-            class_hash: value.class_hash,
-        }
-    }
-}
-
-impl From<DeclareTransactionV3> for DeclareTransactionV3Content {
-    fn from(value: DeclareTransactionV3) -> Self {
-        Self {
-            sender_address: value.sender_address,
-            compiled_class_hash: value.compiled_class_hash,
-            signature: value.signature,
-            nonce: value.nonce,
-            class_hash: value.class_hash,
-            resource_bounds: value.resource_bounds,
-            tip: value.tip,
-            paymaster_data: value.paymaster_data,
-            account_deployment_data: value.account_deployment_data,
-            nonce_data_availability_mode: value.nonce_data_availability_mode,
-            fee_data_availability_mode: value.fee_data_availability_mode,
-        }
-    }
-}
-
-impl From<DeployAccountTransactionV1> for DeployAccountTransactionV1Content {
-    fn from(value: DeployAccountTransactionV1) -> Self {
-        Self {
-            max_fee: value.max_fee,
-            signature: value.signature,
-            nonce: value.nonce,
-            contract_address_salt: value.contract_address_salt,
-            constructor_calldata: value.constructor_calldata,
-            class_hash: value.class_hash,
-        }
-    }
-}
-
-impl From<DeployAccountTransactionV3> for DeployAccountTransactionV3Content {
-    fn from(value: DeployAccountTransactionV3) -> Self {
-        Self {
-            signature: value.signature,
-            nonce: value.nonce,
-            contract_address_salt: value.contract_address_salt,
-            constructor_calldata: value.constructor_calldata,
-            class_hash: value.class_hash,
-            resource_bounds: value.resource_bounds,
-            tip: value.tip,
-            paymaster_data: value.paymaster_data,
-            nonce_data_availability_mode: value.nonce_data_availability_mode,
-            fee_data_availability_mode: value.fee_data_availability_mode,
-        }
-    }
-}
+// impl From<InvokeTransactionV0> for InvokeTransactionV0Content { ... }
+// impl From<InvokeTransactionV1> for InvokeTransactionV1Content { ... }
+// impl From<InvokeTransactionV3> for InvokeTransactionV3Content { ... }
+// impl From<DeclareTransactionV0> for DeclareTransactionV0Content { ... }
+// impl From<DeclareTransactionV1> for DeclareTransactionV1Content { ... }
+// impl From<DeclareTransactionV2> for DeclareTransactionV2Content { ... }
+// impl From<DeclareTransactionV3> for DeclareTransactionV3Content { ... }
+// impl From<DeployAccountTransactionV1> for DeployAccountTransactionV1Content { ... }
+// impl From<DeployAccountTransactionV3> for DeployAccountTransactionV3Content { ... }

@@ -591,7 +591,7 @@ pub enum StreamUpdateData {
 
 impl StreamUpdateData {
     /// Gets a reference to the subscription ID the update corresponds to.
-    pub const fn subscription_id(&self) -> &SubscriptionId {
+    pub const fn subscription_id(&self) -> &Option<SubscriptionId> {
         match self {
             Self::SubscriptionNewHeads(update) => &update.subscription_id,
             Self::SubscriptionEvents(update) => &update.subscription_id,

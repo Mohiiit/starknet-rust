@@ -607,7 +607,7 @@ impl SierraClass {
         Ok(FlattenedSierraClass {
             sierra_program: self.sierra_program,
             entry_points_by_type: self.entry_points_by_type,
-            abi,
+            abi: Some(abi),
             contract_class_version: self.contract_class_version,
         })
     }
@@ -629,7 +629,9 @@ impl FlattenedSierraClass {
         ));
 
         // Hashes ABI
-        hasher.update(starknet_keccak(self.abi.as_bytes()));
+        hasher.update(starknet_keccak(
+            self.abi.as_ref().map(|s| s.as_bytes()).unwrap_or(b""),
+        ));
 
         // Hashes Sierra program
         hasher.update(poseidon_hash_many(&self.sierra_program));

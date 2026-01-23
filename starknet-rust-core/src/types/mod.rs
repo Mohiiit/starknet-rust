@@ -1,4 +1,4 @@
-use alloc::{string::String, vec::Vec};
+use alloc::{boxed::Box, string::String, vec::Vec};
 
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -20,39 +20,121 @@ mod codegen;
 pub use codegen::{
     BinaryNode, BlockHeader, BlockStatus, BlockTag, BlockWithReceipts, BlockWithTxHashes,
     BlockWithTxs, BroadcastedDeclareTransaction, BroadcastedDeclareTransactionV3,
-    BroadcastedDeployAccountTransaction, BroadcastedDeployAccountTransactionV3,
-    BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV3, CallType,
+    BroadcastedDeployAccountTransaction, BroadcastedInvokeProof, BroadcastedInvokeTransaction,
+    CallType,
     CompressedLegacyContractClass, ContractErrorData, ContractLeafData, ContractStorageDiffItem,
     ContractStorageKeys, ContractsProof, DataAvailabilityMode, DeclareTransactionReceipt,
-    DeclareTransactionTrace, DeclareTransactionV0, DeclareTransactionV0Content,
-    DeclareTransactionV1, DeclareTransactionV1Content, DeclareTransactionV2,
-    DeclareTransactionV2Content, DeclareTransactionV3, DeclareTransactionV3Content,
-    DeclaredClassItem, DeployAccountTransactionReceipt, DeployAccountTransactionTrace,
-    DeployAccountTransactionV1, DeployAccountTransactionV1Content, DeployAccountTransactionV3,
-    DeployAccountTransactionV3Content, DeployTransaction, DeployTransactionContent,
-    DeployTransactionReceipt, DeployedContractItem, EdgeNode, EmittedEvent,
+    DeclareTransactionTrace, DeclareTransactionV0, DeclareTransactionV1, DeclareTransactionV2,
+    DeclareTransactionV3, DeclaredClassItem, DeployAccountTransactionReceipt,
+    DeployAccountTransactionTrace, DeployAccountTransactionV1, DeployAccountTransactionV3,
+    DeployTransaction, DeployTransactionReceipt, DeployedContractItem, EdgeNode, EmittedEvent,
     EmittedEventWithFinality, EntryPointType, EntryPointsByType, Event, EventFilter,
-    EventFilterWithPage, EventsChunk, ExecutionResources, FeeEstimate, FeePayment,
-    FlattenedSierraClass, FunctionCall, FunctionInvocation, FunctionStateMutability, GlobalRoots,
-    InnerCallExecutionResources, InnerContractExecutionError, InvokeTransactionReceipt,
-    InvokeTransactionTrace, InvokeTransactionV0, InvokeTransactionV0Content, InvokeTransactionV1,
-    InvokeTransactionV1Content, InvokeTransactionV3, InvokeTransactionV3Content,
-    L1DataAvailabilityMode, L1HandlerTransaction, L1HandlerTransactionContent,
-    L1HandlerTransactionReceipt, L1HandlerTransactionTrace, L2TransactionFinalityStatus,
-    L2TransactionStatus, LegacyContractEntryPoint, LegacyEntryPointsByType, LegacyEventAbiEntry,
-    LegacyEventAbiType, LegacyFunctionAbiEntry, LegacyFunctionAbiType, LegacyStructAbiEntry,
-    LegacyStructAbiType, LegacyStructMember, LegacyTypedParameter, MessageFeeEstimate,
-    MigratedCompiledClassItem, MsgFromL1, MsgToL1, NewTransactionStatus, NoTraceAvailableErrorData,
-    NonceUpdate, OrderedEvent, OrderedMessage, PreConfirmedBlockWithReceipts,
-    PreConfirmedBlockWithTxHashes, PreConfirmedBlockWithTxs, PreConfirmedStateUpdate, PriceUnit,
-    ReorgData, ReplacedClassItem, ResourceBounds, ResourceBoundsMapping, ResourcePrice,
-    ResultPageRequest, RevertedInvocation, SequencerTransactionStatus, SierraEntryPoint,
-    SimulatedTransaction, SimulationFlag, SimulationFlagForEstimateFee, StarknetError, StateDiff,
-    StateUpdate, StorageEntry, StorageKey, StorageProof, SubscriptionId, SyncStatus,
-    TransactionExecutionErrorData, TransactionExecutionStatus, TransactionFinalityStatus,
-    TransactionReceiptWithBlockInfo, TransactionTraceWithHash, TransactionWithL2Status,
-    TransactionWithReceipt,
+    EventFilterWithPage, EventsChunk, ExecutionResources, FeeEstimate, FeePayment, FunctionCall,
+    FunctionInvocation, FunctionStateMutability, GlobalRoots, InnerCallExecutionResources,
+    InnerContractExecutionErrorFrame, InvokeTransactionReceipt, InvokeTransactionTrace,
+    InvokeTransactionV0, InvokeTransactionV1, InvokeTransactionV3, L1HandlerTransaction,
+    L1HandlerTransactionReceipt, L1HandlerTransactionTrace, LegacyContractEntryPoint,
+    LegacyEntryPointsByType, LegacyEventAbiEntry, LegacyEventAbiType, LegacyFunctionAbiEntry,
+    LegacyFunctionAbiType, LegacyStructAbiEntry, LegacyStructAbiType, LegacyStructMember,
+    LegacyTypedParameter, MessageFeeEstimate, MigratedCompiledClassItem, MsgFromL1, MsgToL1,
+    NewTransactionStatus, NoTraceAvailableErrorData, NonceUpdate, OrderedEvent, OrderedMessage,
+    PreConfirmedBlockWithReceipts, PreConfirmedBlockWithTxHashes, PreConfirmedBlockWithTxs,
+    PreConfirmedStateUpdate, PriceUnit, ReorgData, ReplacedClassItem, ResourceBounds,
+    ResourceBoundsMapping, ResourcePrice, ResultPageRequest, RevertedInvocation,
+    SequencerTransactionStatus, SierraEntryPoint, SimulatedTransaction, SimulationFlag,
+    SimulationFlagForEstimateFee, StarknetError, StateDiff, StateUpdate, StorageDiffItem,
+    StorageKey, StorageProofResult, SubscriptionId, SyncStatus, TransactionExecutionErrorData,
+    TransactionExecutionStatus, TransactionFinalityStatus, TransactionReceiptWithBlockInfo,
+    TransactionHashWrapper, TransactionTraceWithHash, TransactionWithHash,
+    TransactionWithHashAndFinality, TransactionWithReceipt,
 };
+
+// Type aliases for backward compatibility
+
+/// Flattened Sierra contract class (alias for [`ContractClass`](codegen::ContractClass)).
+pub type FlattenedSierraClass = codegen::ContractClass;
+/// Inner contract execution error (alias for [`InnerContractExecutionErrorFrame`]).
+pub type InnerContractExecutionError = InnerContractExecutionErrorFrame;
+/// L1 data availability mode (alias for [`DataAvailabilityMode`]).
+pub type L1DataAvailabilityMode = DataAvailabilityMode;
+/// Storage entry (alias for [`StorageDiffItem`]).
+pub type StorageEntry = StorageDiffItem;
+/// Storage proof (alias for [`StorageProofResult`]).
+pub type StorageProof = StorageProofResult;
+/// Broadcasted deploy account transaction V3 (alias for [`DeployAccountTransactionV3`]).
+pub type BroadcastedDeployAccountTransactionV3 = DeployAccountTransactionV3;
+/// Broadcasted invoke transaction V3 (alias for [`BroadcastedInvokeTransaction`]).
+pub type BroadcastedInvokeTransactionV3 = BroadcastedInvokeTransaction;
+
+// Content types are now the same as transaction types (they include transaction_hash)
+
+/// Invoke transaction V0 content (alias for [`InvokeTransactionV0`]).
+pub type InvokeTransactionV0Content = InvokeTransactionV0;
+/// Invoke transaction V1 content (alias for [`InvokeTransactionV1`]).
+pub type InvokeTransactionV1Content = InvokeTransactionV1;
+/// Invoke transaction V3 content (alias for [`InvokeTransactionV3`]).
+pub type InvokeTransactionV3Content = InvokeTransactionV3;
+/// Declare transaction V0 content (alias for [`DeclareTransactionV0`]).
+pub type DeclareTransactionV0Content = DeclareTransactionV0;
+/// Declare transaction V1 content (alias for [`DeclareTransactionV1`]).
+pub type DeclareTransactionV1Content = DeclareTransactionV1;
+/// Declare transaction V2 content (alias for [`DeclareTransactionV2`]).
+pub type DeclareTransactionV2Content = DeclareTransactionV2;
+/// Declare transaction V3 content (alias for [`DeclareTransactionV3`]).
+pub type DeclareTransactionV3Content = DeclareTransactionV3;
+/// Deploy account transaction V1 content (alias for [`DeployAccountTransactionV1`]).
+pub type DeployAccountTransactionV1Content = DeployAccountTransactionV1;
+/// Deploy account transaction V3 content (alias for [`DeployAccountTransactionV3`]).
+pub type DeployAccountTransactionV3Content = DeployAccountTransactionV3;
+/// Deploy transaction content (alias for [`DeployTransaction`]).
+pub type DeployTransactionContent = DeployTransaction;
+/// L1 handler transaction content (alias for [`L1HandlerTransaction`]).
+pub type L1HandlerTransactionContent = L1HandlerTransaction;
+
+// Status type aliases
+
+/// L2 transaction finality status (alias for [`TransactionFinalityStatus`]).
+pub type L2TransactionFinalityStatus = TransactionFinalityStatus;
+/// L2 transaction status (alias for [`SequencerTransactionStatus`]).
+pub type L2TransactionStatus = SequencerTransactionStatus;
+/// Transaction with L2 status (alias for [`TransactionWithHashAndFinality`]).
+pub type TransactionWithL2Status = TransactionWithHashAndFinality;
+
+/// An invocation that can be either successful or reverted.
+///
+/// Used in transaction traces where the execution may have succeeded or failed.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RevertibleFunctionInvocation {
+    /// Successful function invocation
+    Invocation(FunctionInvocation),
+    /// Reverted function invocation with revert reason
+    Reverted(RevertedInvocation),
+}
+
+/// Address filter for event queries.
+///
+/// Can be a single contract address or a list of addresses.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum AddressFilter {
+    /// Single address filter
+    Single(Felt),
+    /// Multiple addresses filter
+    Multiple(Vec<Felt>),
+}
+
+/// Contract execution error inner type.
+///
+/// Either a structured error frame or a string error message.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ContractExecutionErrorInner {
+    /// Structured error frame (boxed to break recursion)
+    Frame(Box<InnerContractExecutionErrorFrame>),
+    /// String error message
+    Message(String),
+}
 
 /// Module containing the [`U256`] type.
 pub mod u256;
@@ -616,7 +698,7 @@ impl MaybePreConfirmedBlockWithTxHashes {
 
 impl MaybePreConfirmedBlockWithTxs {
     /// Gets a reference to the list of transactions.
-    pub fn transactions(&self) -> &[Transaction] {
+    pub fn transactions(&self) -> &[TransactionWithHash] {
         match self {
             Self::Block(block) => &block.transactions,
             Self::PreConfirmedBlock(block) => &block.transactions,
@@ -657,7 +739,7 @@ impl MaybePreConfirmedBlockWithTxs {
         let mut tips: Vec<u64> = self
             .transactions()
             .iter()
-            .filter_map(Transaction::tip)
+            .filter_map(|twh| Transaction::tip(&twh.txn))
             .collect();
 
         if tips.is_empty() {
@@ -924,7 +1006,7 @@ mod tests {
                 "0x374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
             )
             .unwrap(),
-            version: Felt::ZERO,
+            version: "0x0".to_string(),
             nonce: 775_628,
             contract_address: Felt::from_hex(
                 "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
@@ -960,7 +1042,7 @@ mod tests {
                 "0x374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
             )
             .unwrap(),
-            version: Felt::ZERO,
+            version: "0x0".to_string(),
             nonce: 775_628,
             contract_address: Felt::from_hex(
                 "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
@@ -986,7 +1068,7 @@ mod tests {
                 "0x374286ae28f201e61ffbc5b022cc9701208640b405ea34ea9799f97d5d2d23c",
             )
             .unwrap(),
-            version: Felt::ZERO,
+            version: "0x0".to_string(),
             nonce: 775_628,
             contract_address: Felt::from_hex(
                 "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
@@ -1044,7 +1126,7 @@ mod tests {
 
         assert_eq!(
             GetStorageProofRequest {
-                block_id: ConfirmedBlockId::Number(200),
+                block_id: BlockId::Number(200),
                 class_hashes: Some(vec![Felt::from_hex_unchecked("0x123")]),
                 contract_addresses: None,
                 contracts_storage_keys: None
@@ -1054,7 +1136,7 @@ mod tests {
 
         assert_eq!(
             GetStorageProofRequest {
-                block_id: ConfirmedBlockId::Number(200),
+                block_id: BlockId::Number(200),
                 class_hashes: Some(vec![Felt::from_hex_unchecked("0x123")]),
                 contract_addresses: None,
                 contracts_storage_keys: None

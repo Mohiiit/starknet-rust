@@ -6,7 +6,7 @@ use serde_with::serde_as;
 use starknet_rust_core::{
     serde::unsigned_field_element::UfeHex,
     types::{
-        BlockHashAndNumber, BlockId, BroadcastedDeclareTransaction,
+        BlockHashAndNumber, BlockId, BlockTag, BroadcastedDeclareTransaction,
         BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedTransaction,
         ConfirmedBlockId, ContractClass, ContractErrorData, ContractStorageKeys,
         DeclareTransactionResult, DeployAccountTransactionResult, EventFilter, EventFilterWithPage,
@@ -618,6 +618,7 @@ where
             JsonRpcMethod::GetBlockWithTxs,
             GetBlockWithTxsRequestRef {
                 block_id: block_id.as_ref(),
+                response_flags: &None,
             },
         )
         .await
@@ -635,6 +636,7 @@ where
             JsonRpcMethod::GetBlockWithReceipts,
             GetBlockWithReceiptsRequestRef {
                 block_id: block_id.as_ref(),
+                response_flags: &None,
             },
         )
         .await
@@ -728,6 +730,7 @@ where
             JsonRpcMethod::GetTransactionByHash,
             GetTransactionByHashRequestRef {
                 transaction_hash: transaction_hash.as_ref(),
+                response_flags: &None,
             },
         )
         .await
@@ -747,6 +750,7 @@ where
             GetTransactionByBlockIdAndIndexRequestRef {
                 block_id: block_id.as_ref(),
                 index: &index,
+                response_flags: &None,
             },
         )
         .await
@@ -992,13 +996,27 @@ where
         A: AsRef<[FeltPrimitive]> + Send + Sync,
         K: AsRef<[ContractStorageKeys]> + Send + Sync,
     {
+        // Convert ConfirmedBlockId to BlockId
+        let block_id = match block_id.as_ref() {
+            ConfirmedBlockId::Hash(h) => BlockId::Hash(*h),
+            ConfirmedBlockId::Number(n) => BlockId::Number(*n),
+            ConfirmedBlockId::Latest => BlockId::Tag(BlockTag::Latest),
+            ConfirmedBlockId::L1Accepted => BlockId::Tag(BlockTag::Latest),
+        };
+        // Convert slices to owned Option<Vec<T>>
+        let class_hashes: Option<Vec<FeltPrimitive>> =
+            Some(class_hashes.as_ref().iter().copied().collect());
+        let contract_addresses: Option<Vec<FeltPrimitive>> =
+            Some(contract_addresses.as_ref().iter().copied().collect());
+        let contracts_storage_keys: Option<Vec<ContractStorageKeys>> =
+            Some(contracts_storage_keys.as_ref().to_vec());
         self.send_request(
             JsonRpcMethod::GetStorageProof,
             GetStorageProofRequestRef {
-                block_id: block_id.as_ref(),
-                class_hashes: Some(class_hashes.as_ref()),
-                contract_addresses: Some(contract_addresses.as_ref()),
-                contracts_storage_keys: Some(contracts_storage_keys.as_ref()),
+                block_id: &block_id,
+                class_hashes: &class_hashes,
+                contract_addresses: &contract_addresses,
+                contracts_storage_keys: &contracts_storage_keys,
             },
         )
         .await
@@ -1109,10 +1127,17 @@ where
     where
         B: AsRef<ConfirmedBlockId> + Send + Sync,
     {
+        let block_id = match block_id.as_ref() {
+            ConfirmedBlockId::Hash(h) => BlockId::Hash(*h),
+            ConfirmedBlockId::Number(n) => BlockId::Number(*n),
+            ConfirmedBlockId::Latest => BlockId::Tag(BlockTag::Latest),
+            ConfirmedBlockId::L1Accepted => BlockId::Tag(BlockTag::Latest), // L1Accepted maps to Latest for now
+        };
         self.send_request(
             JsonRpcMethod::TraceBlockTransactions,
             TraceBlockTransactionsRequestRef {
-                block_id: block_id.as_ref(),
+                block_id: &block_id,
+                trace_flags: &None,
             },
         )
         .await

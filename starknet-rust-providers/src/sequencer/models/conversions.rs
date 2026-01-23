@@ -57,7 +57,10 @@ impl TryFrom<Block> for core::MaybePreConfirmedBlockWithTxHashes {
                     l1_gas_price: value.l1_gas_price,
                     l2_gas_price: value.l2_gas_price,
                     l1_data_gas_price: value.l1_data_gas_price,
-                    l1_da_mode: value.l1_da_mode,
+                    l1_da_mode: match value.l1_da_mode {
+                        core::DataAvailabilityMode::L1 => "L1".to_string(),
+                        core::DataAvailabilityMode::L2 => "L2".to_string(),
+                    },
                     starknet_version: value.starknet_version,
                     event_commitment: value.event_commitment.unwrap_or_default(),
                     transaction_commitment: value.transaction_commitment.unwrap_or_default(),
@@ -106,7 +109,10 @@ impl TryFrom<Block> for core::MaybePreConfirmedBlockWithTxs {
                     l1_gas_price: value.l1_gas_price,
                     l2_gas_price: value.l2_gas_price,
                     l1_data_gas_price: value.l1_data_gas_price,
-                    l1_da_mode: value.l1_da_mode,
+                    l1_da_mode: match value.l1_da_mode {
+                        core::DataAvailabilityMode::L1 => "L1".to_string(),
+                        core::DataAvailabilityMode::L2 => "L2".to_string(),
+                    },
                     starknet_version: value.starknet_version,
                     event_commitment: value.event_commitment.unwrap_or_default(),
                     transaction_commitment: value.transaction_commitment.unwrap_or_default(),
@@ -180,7 +186,10 @@ impl TryFrom<Block> for core::MaybePreConfirmedBlockWithReceipts {
                     l1_gas_price: value.l1_gas_price,
                     l2_gas_price: value.l2_gas_price,
                     l1_data_gas_price: value.l1_data_gas_price,
-                    l1_da_mode: value.l1_da_mode,
+                    l1_da_mode: match value.l1_da_mode {
+                        core::DataAvailabilityMode::L1 => "L1".to_string(),
+                        core::DataAvailabilityMode::L2 => "L2".to_string(),
+                    },
                     starknet_version: value.starknet_version,
                     event_commitment: value.event_commitment.unwrap_or_default(),
                     transaction_commitment: value.transaction_commitment.unwrap_or_default(),
@@ -240,6 +249,19 @@ impl TryFrom<TransactionType> for core::TransactionContent {
     fn try_from(value: TransactionType) -> Result<Self, Self::Error> {
         let tx: core::Transaction = value.try_into()?;
         Ok(tx.into())
+    }
+}
+
+impl TryFrom<TransactionType> for core::TransactionWithHash {
+    type Error = ConversionError;
+
+    fn try_from(value: TransactionType) -> Result<Self, Self::Error> {
+        let transaction_hash = value.transaction_hash();
+        let txn: core::Transaction = value.try_into()?;
+        Ok(Self {
+            txn,
+            txn_hash_wrapper: core::TransactionHashWrapper { transaction_hash },
+        })
     }
 }
 
@@ -396,6 +418,7 @@ impl TryFrom<InvokeFunctionTransaction> for core::InvokeTransaction {
                     .fee_data_availability_mode
                     .ok_or(ConversionError)?
                     .into(),
+                proof_facts: None,
             }))
         } else {
             Err(ConversionError)
@@ -409,7 +432,8 @@ impl TryFrom<L1HandlerTransaction> for core::L1HandlerTransaction {
     fn try_from(value: L1HandlerTransaction) -> Result<Self, Self::Error> {
         Ok(Self {
             transaction_hash: value.transaction_hash,
-            version: value.version,
+            // version is now String in spec 0.10.1
+            version: format!("{:#x}", value.version),
             nonce: {
                 // TODO: remove this when a proper u64 conversion is implemented for `Felt`
                 let nonce_bytes = value.nonce.unwrap_or_default().to_bytes_le();
@@ -653,18 +677,21 @@ impl From<core::BroadcastedInvokeTransaction> for InvokeFunctionTransactionReque
 
 impl From<core::BroadcastedInvokeTransactionV3> for InvokeFunctionV3TransactionRequest {
     fn from(value: core::BroadcastedInvokeTransactionV3) -> Self {
+        // BroadcastedInvokeTransactionV3 is now BroadcastedInvokeTransaction which wraps InvokeTransactionV3
+        let inner = value.invoke_txn_v3;
         Self {
-            sender_address: value.sender_address,
-            calldata: value.calldata,
-            signature: value.signature,
-            nonce: value.nonce,
-            nonce_data_availability_mode: value.nonce_data_availability_mode.into(),
-            fee_data_availability_mode: value.fee_data_availability_mode.into(),
-            resource_bounds: value.resource_bounds.into(),
-            tip: value.tip,
-            paymaster_data: value.paymaster_data,
-            account_deployment_data: value.account_deployment_data,
-            is_query: value.is_query,
+            sender_address: inner.sender_address,
+            calldata: inner.calldata,
+            signature: inner.signature,
+            nonce: inner.nonce,
+            nonce_data_availability_mode: inner.nonce_data_availability_mode.into(),
+            fee_data_availability_mode: inner.fee_data_availability_mode.into(),
+            resource_bounds: inner.resource_bounds.into(),
+            tip: inner.tip,
+            paymaster_data: inner.paymaster_data,
+            account_deployment_data: inner.account_deployment_data,
+            // is_query was removed in spec 0.10.1
+            is_query: false,
         }
     }
 }
@@ -696,7 +723,8 @@ impl TryFrom<core::BroadcastedDeclareTransactionV3> for DeclareV3TransactionRequ
             tip: value.tip,
             paymaster_data: value.paymaster_data,
             account_deployment_data: value.account_deployment_data,
-            is_query: value.is_query,
+            // is_query was removed in spec 0.10.1
+            is_query: false,
         })
     }
 }
@@ -709,6 +737,7 @@ impl From<core::BroadcastedDeployAccountTransaction> for DeployAccountTransactio
 
 impl From<core::BroadcastedDeployAccountTransactionV3> for DeployAccountV3TransactionRequest {
     fn from(value: core::BroadcastedDeployAccountTransactionV3) -> Self {
+        // BroadcastedDeployAccountTransactionV3 is now DeployAccountTransactionV3
         Self {
             class_hash: value.class_hash,
             contract_address_salt: value.contract_address_salt,
@@ -720,7 +749,8 @@ impl From<core::BroadcastedDeployAccountTransactionV3> for DeployAccountV3Transa
             resource_bounds: value.resource_bounds.into(),
             tip: value.tip,
             paymaster_data: value.paymaster_data,
-            is_query: value.is_query,
+            // is_query was removed in spec 0.10.1
+            is_query: false,
         }
     }
 }
@@ -1056,7 +1086,13 @@ impl TryFrom<ConfirmedReceiptWithContext> for core::L1HandlerTransactionReceipt 
                 value.receipt.execution_status,
                 value.receipt.revert_error,
             )?,
-            message_hash: msg_to_l2.hash(),
+            // TODO: The spec defines message_hash as NUM_AS_HEX (u64), but the actual
+            // L1 message hash is a 256-bit keccak hash. We take the lower 64 bits here.
+            message_hash: {
+                let hash = msg_to_l2.hash();
+                let hash_bytes = hash.as_bytes();
+                u64::from_be_bytes(hash_bytes[24..32].try_into().unwrap())
+            },
         })
     }
 }

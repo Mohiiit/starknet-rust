@@ -961,7 +961,7 @@ impl From<RawLegacyMember> for LegacyStructMember {
         Self {
             name: value.name,
             r#type: value.r#type,
-            offset: value.offset,
+            offset: Some(value.offset),
         }
     }
 }
