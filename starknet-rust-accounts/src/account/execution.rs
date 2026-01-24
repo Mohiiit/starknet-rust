@@ -535,6 +535,7 @@ impl RawExecutionV3 {
 
         // Hard-coded L1 DA mode for nonce and fee
         hasher.update(Felt::ZERO);
+        hasher.update(Felt::ZERO);
 
         // Hard-coded empty `account_deployment_data`
         hasher.update(PoseidonHasher::new().finalize());

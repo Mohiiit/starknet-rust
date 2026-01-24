@@ -761,6 +761,7 @@ where
 
         // Hard-coded L1 DA mode for nonce and fee
         hasher.update(Felt::ZERO);
+        hasher.update(Felt::ZERO);
 
         hasher.update({
             let mut calldata_hasher = PoseidonHasher::new();
