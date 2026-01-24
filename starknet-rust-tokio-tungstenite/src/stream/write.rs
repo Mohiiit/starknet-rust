@@ -121,6 +121,7 @@ impl StreamWriteDriver {
         }
     }
 
+    #[allow(clippy::cognitive_complexity)]
     async fn handle_write_action(
         &mut self,
         action: Option<WriteAction>,
@@ -185,9 +186,15 @@ impl StreamWriteDriver {
                                     block_id: Some(options.block_id),
                                     // Convert finality status to string
                                     finality_status: Some(match options.finality_status {
-                                        L2TransactionFinalityStatus::PreConfirmed => "PRE_CONFIRMED".to_string(),
-                                        L2TransactionFinalityStatus::AcceptedOnL2 => "ACCEPTED_ON_L2".to_string(),
-                                        L2TransactionFinalityStatus::AcceptedOnL1 => "ACCEPTED_ON_L1".to_string(),
+                                        L2TransactionFinalityStatus::PreConfirmed => {
+                                            "PRE_CONFIRMED".to_string()
+                                        }
+                                        L2TransactionFinalityStatus::AcceptedOnL2 => {
+                                            "ACCEPTED_ON_L2".to_string()
+                                        }
+                                        L2TransactionFinalityStatus::AcceptedOnL1 => {
+                                            "ACCEPTED_ON_L1".to_string()
+                                        }
                                     }),
                                 })
                             }
