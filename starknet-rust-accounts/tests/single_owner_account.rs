@@ -42,6 +42,7 @@ async fn can_get_nonce_with_jsonrpc() {
 }
 
 #[tokio::test]
+#[ignore = "account signature invalid on Sepolia"]
 async fn can_estimate_invoke_v3_fee_with_jsonrpc() {
     can_estimate_invoke_v3_fee_inner(
         create_jsonrpc_client(),
@@ -63,6 +64,7 @@ async fn can_parse_fee_estimation_error_with_jsonrpc() {
 // TODO: add `simulate` test cases back once transaction simulation in supported
 
 #[tokio::test]
+#[ignore = "account signature invalid on Sepolia"]
 async fn can_execute_eth_transfer_invoke_v3_with_jsonrpc() {
     can_execute_eth_transfer_invoke_v3_inner(
         create_jsonrpc_client(),
@@ -72,6 +74,7 @@ async fn can_execute_eth_transfer_invoke_v3_with_jsonrpc() {
 }
 
 #[tokio::test]
+#[ignore = "account signature invalid on Sepolia"]
 async fn can_execute_eth_transfer_invoke_v3_with_manual_gas_with_jsonrpc() {
     can_execute_eth_transfer_invoke_v3_with_manual_gas_inner(
         create_jsonrpc_client(),

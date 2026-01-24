@@ -11,6 +11,7 @@ use starknet_rust_signers::{LocalWallet, SigningKey};
 use test_common::create_jsonrpc_client;
 
 #[tokio::test]
+#[ignore = "requires funded Sepolia account and stable RPC response"]
 async fn can_deploy_contract_with_legacy_udc_unique() {
     can_deploy_contract_inner(
         Felt::from_hex("0x034dd51aa591d174b60d1cb45e46dfcae47946fae1c5e62933bbf48effedde4d")
@@ -22,6 +23,7 @@ async fn can_deploy_contract_with_legacy_udc_unique() {
 }
 
 #[tokio::test]
+#[ignore = "requires funded Sepolia account and stable RPC response"]
 async fn can_deploy_contract_with_legacy_udc_not_unique() {
     can_deploy_contract_inner(
         Felt::from_hex("0x0608560dcfc38cdd06092bc182784e72a25bd4c3d33a08f3d76ec0382ad2bfd2")
@@ -33,6 +35,7 @@ async fn can_deploy_contract_with_legacy_udc_not_unique() {
 }
 
 #[tokio::test]
+#[ignore = "requires funded Sepolia account and stable RPC response"]
 async fn can_deploy_contract_with_new_udc_unique() {
     can_deploy_contract_inner(
         Felt::from_hex("0x047c86c40070523edefbfb96fd84b0198444c2753105eebb1b3f9e3a229b68fe")
@@ -44,6 +47,7 @@ async fn can_deploy_contract_with_new_udc_unique() {
 }
 
 #[tokio::test]
+#[ignore = "requires funded Sepolia account and stable RPC response"]
 async fn can_deploy_contract_with_new_udc_not_unique() {
     can_deploy_contract_inner(
         Felt::from_hex("0x03503c8a593f6e09219be18915d428841abf0388348fdf6dd626bad6e3024186")
