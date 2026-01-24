@@ -46,8 +46,11 @@ mod ledger {
     use test_common::create_jsonrpc_client;
 
     #[tokio::test]
-    #[ignore = "requires Speculos installation"]
+    #[ignore = "requires Speculos installation and funded account"]
     async fn test_invoke_v3() {
+        if std::env::var("STARKNET_LEDGER_E2E").is_err() {
+            return;
+        }
         let (client, app) = setup_app(6001);
         client
             .automation(&[
