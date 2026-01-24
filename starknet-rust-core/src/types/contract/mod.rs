@@ -630,7 +630,7 @@ impl FlattenedSierraClass {
 
         // Hashes ABI
         hasher.update(starknet_keccak(
-            self.abi.as_ref().map(|s| s.as_bytes()).unwrap_or(b""),
+            self.abi.as_ref().map_or(b"", String::as_bytes),
         ));
 
         // Hashes Sierra program

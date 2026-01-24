@@ -28,6 +28,12 @@
 #![allow(missing_docs)]
 #![allow(clippy::doc_markdown)]
 #![allow(clippy::missing_const_for_fn)]
+#![allow(clippy::all)]
+#![allow(clippy::wildcard_imports)]
+#![allow(clippy::struct_field_names)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unreachable_pub)]
 
 use alloc::{format, string::*, vec::*};
 
@@ -38,7 +44,7 @@ use serde_with::serde_as;
 use crate::serde::byte_array::base64;
 
 use super::{
-    serde_impls::{MerkleNodeMap, NumAsHex, OwnedContractExecutionError},
+    serde_impls::{MerkleNodeMap, NumAsHex},
     *,
 };
 
@@ -53,10 +59,10 @@ type RandomState = std::hash::RandomState;
 type RandomState = foldhash::fast::RandomState;
 
 const QUERY_VERSION_OFFSET: Felt = Felt::from_raw([
-    576460752142434320,
-    18446744073709551584,
-    17407,
-    18446744073700081665,
+    576_460_752_142_434_320,
+    18_446_744_073_709_551_584,
+    17_407,
+    18_446_744_073_700_081_665,
 ]);
 
 pub type BroadcastedDeployAccountTransaction = DeployAccountTransactionV3;
@@ -1997,7 +2003,9 @@ impl core::fmt::Display for StarknetError {
             Self::UnsupportedTxVersion => write!(f, "UnsupportedTxVersion"),
             Self::UnsupportedContractClassVersion => write!(f, "UnsupportedContractClassVersion"),
             Self::UnexpectedError(e) => write!(f, "UnexpectedError: {e:?}"),
-            Self::ReplacementTransactionUnderpriced => write!(f, "ReplacementTransactionUnderpriced"),
+            Self::ReplacementTransactionUnderpriced => {
+                write!(f, "ReplacementTransactionUnderpriced")
+            }
             Self::FeeBelowMinimum => write!(f, "FeeBelowMinimum"),
             Self::NoTraceAvailable(e) => write!(f, "NoTraceAvailable: {e:?}"),
             Self::InvalidSubscriptionId => write!(f, "InvalidSubscriptionId"),

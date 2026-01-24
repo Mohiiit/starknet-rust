@@ -167,6 +167,7 @@ impl<'de> Deserialize<'de> for SyncStatusType {
     }
 }
 
+#[allow(dead_code)]
 pub(super) struct OwnedContractExecutionError;
 
 impl SerializeAs<OwnedPtr<ContractExecutionError>> for OwnedContractExecutionError {

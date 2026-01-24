@@ -1,13 +1,6 @@
 use super::{
-    DeclareTransaction, DeclareTransactionContent, DeclareTransactionV0,
-    DeclareTransactionV0Content, DeclareTransactionV1, DeclareTransactionV1Content,
-    DeclareTransactionV2, DeclareTransactionV2Content, DeclareTransactionV3,
-    DeclareTransactionV3Content, DeployAccountTransaction, DeployAccountTransactionContent,
-    DeployAccountTransactionV1, DeployAccountTransactionV1Content, DeployAccountTransactionV3,
-    DeployAccountTransactionV3Content, DeployTransaction, DeployTransactionContent,
-    InvokeTransaction, InvokeTransactionContent, InvokeTransactionV0, InvokeTransactionV0Content,
-    InvokeTransactionV1, InvokeTransactionV1Content, InvokeTransactionV3,
-    InvokeTransactionV3Content, L1HandlerTransaction, L1HandlerTransactionContent,
+    DeclareTransaction, DeclareTransactionContent, DeployAccountTransaction,
+    DeployAccountTransactionContent, InvokeTransaction, InvokeTransactionContent,
     LegacyContractAbiEntry, LegacyFunctionAbiType, Transaction, TransactionContent,
     contract::legacy::{
         RawLegacyAbiEntry, RawLegacyConstructor, RawLegacyEvent, RawLegacyFunction,
@@ -62,9 +55,9 @@ impl From<Transaction> for TransactionContent {
     fn from(value: Transaction) -> Self {
         match value {
             Transaction::Invoke(inner) => Self::Invoke(inner.into()),
-            Transaction::L1Handler(inner) => Self::L1Handler(inner.into()),
+            Transaction::L1Handler(inner) => Self::L1Handler(inner),
             Transaction::Declare(inner) => Self::Declare(inner.into()),
-            Transaction::Deploy(inner) => Self::Deploy(inner.into()),
+            Transaction::Deploy(inner) => Self::Deploy(inner),
             Transaction::DeployAccount(inner) => Self::DeployAccount(inner.into()),
         }
     }
@@ -73,9 +66,9 @@ impl From<Transaction> for TransactionContent {
 impl From<InvokeTransaction> for InvokeTransactionContent {
     fn from(value: InvokeTransaction) -> Self {
         match value {
-            InvokeTransaction::V0(inner) => Self::V0(inner.into()),
-            InvokeTransaction::V1(inner) => Self::V1(inner.into()),
-            InvokeTransaction::V3(inner) => Self::V3(inner.into()),
+            InvokeTransaction::V0(inner) => Self::V0(inner),
+            InvokeTransaction::V1(inner) => Self::V1(inner),
+            InvokeTransaction::V3(inner) => Self::V3(inner),
         }
     }
 }
@@ -88,10 +81,10 @@ impl From<InvokeTransaction> for InvokeTransactionContent {
 impl From<DeclareTransaction> for DeclareTransactionContent {
     fn from(value: DeclareTransaction) -> Self {
         match value {
-            DeclareTransaction::V0(inner) => Self::V0(inner.into()),
-            DeclareTransaction::V1(inner) => Self::V1(inner.into()),
-            DeclareTransaction::V2(inner) => Self::V2(inner.into()),
-            DeclareTransaction::V3(inner) => Self::V3(inner.into()),
+            DeclareTransaction::V0(inner) => Self::V0(inner),
+            DeclareTransaction::V1(inner) => Self::V1(inner),
+            DeclareTransaction::V2(inner) => Self::V2(inner),
+            DeclareTransaction::V3(inner) => Self::V3(inner),
         }
     }
 }
@@ -102,8 +95,8 @@ impl From<DeclareTransaction> for DeclareTransactionContent {
 impl From<DeployAccountTransaction> for DeployAccountTransactionContent {
     fn from(value: DeployAccountTransaction) -> Self {
         match value {
-            DeployAccountTransaction::V1(inner) => Self::V1(inner.into()),
-            DeployAccountTransaction::V3(inner) => Self::V3(inner.into()),
+            DeployAccountTransaction::V1(inner) => Self::V1(inner),
+            DeployAccountTransaction::V3(inner) => Self::V3(inner),
         }
     }
 }

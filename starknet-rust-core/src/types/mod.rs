@@ -21,11 +21,10 @@ pub use codegen::{
     BinaryNode, BlockHeader, BlockStatus, BlockTag, BlockWithReceipts, BlockWithTxHashes,
     BlockWithTxs, BroadcastedDeclareTransaction, BroadcastedDeclareTransactionV3,
     BroadcastedDeployAccountTransaction, BroadcastedInvokeProof, BroadcastedInvokeTransaction,
-    CallType,
-    CompressedLegacyContractClass, ContractErrorData, ContractLeafData, ContractStorageDiffItem,
-    ContractStorageKeys, ContractsProof, DataAvailabilityMode, DeclareTransactionReceipt,
-    DeclareTransactionTrace, DeclareTransactionV0, DeclareTransactionV1, DeclareTransactionV2,
-    DeclareTransactionV3, DeclaredClassItem, DeployAccountTransactionReceipt,
+    CallType, CompressedLegacyContractClass, ContractErrorData, ContractLeafData,
+    ContractStorageDiffItem, ContractStorageKeys, ContractsProof, DataAvailabilityMode,
+    DeclareTransactionReceipt, DeclareTransactionTrace, DeclareTransactionV0, DeclareTransactionV1,
+    DeclareTransactionV2, DeclareTransactionV3, DeclaredClassItem, DeployAccountTransactionReceipt,
     DeployAccountTransactionTrace, DeployAccountTransactionV1, DeployAccountTransactionV3,
     DeployTransaction, DeployTransactionReceipt, DeployedContractItem, EdgeNode, EmittedEvent,
     EmittedEventWithFinality, EntryPointType, EntryPointsByType, Event, EventFilter,
@@ -44,14 +43,14 @@ pub use codegen::{
     SequencerTransactionStatus, SierraEntryPoint, SimulatedTransaction, SimulationFlag,
     SimulationFlagForEstimateFee, StarknetError, StateDiff, StateUpdate, StorageDiffItem,
     StorageKey, StorageProofResult, SubscriptionId, SyncStatus, TransactionExecutionErrorData,
-    TransactionExecutionStatus, TransactionFinalityStatus, TransactionReceiptWithBlockInfo,
-    TransactionHashWrapper, TransactionTraceWithHash, TransactionWithHash,
+    TransactionExecutionStatus, TransactionFinalityStatus, TransactionHashWrapper,
+    TransactionReceiptWithBlockInfo, TransactionTraceWithHash, TransactionWithHash,
     TransactionWithHashAndFinality, TransactionWithReceipt,
 };
 
 // Type aliases for backward compatibility
 
-/// Flattened Sierra contract class (alias for [`ContractClass`](codegen::ContractClass)).
+/// Flattened Sierra contract class (alias for [`ContractClass`](ContractClass)).
 pub type FlattenedSierraClass = codegen::ContractClass;
 /// Inner contract execution error (alias for [`InnerContractExecutionErrorFrame`]).
 pub type InnerContractExecutionError = InnerContractExecutionErrorFrame;
@@ -118,6 +117,7 @@ pub type TransactionWithL2Status = TransactionWithHashAndFinality;
 ///
 /// Used in transaction traces where the execution may have succeeded or failed.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[allow(clippy::large_enum_variant)]
 #[serde(untagged)]
 pub enum RevertibleFunctionInvocation {
     /// Successful function invocation
