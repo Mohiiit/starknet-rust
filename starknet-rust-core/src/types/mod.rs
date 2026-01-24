@@ -50,7 +50,7 @@ pub use codegen::{
 
 // Type aliases for backward compatibility
 
-/// Flattened Sierra contract class (alias for [`ContractClass`](ContractClass)).
+/// Flattened Sierra contract class (alias for [`ContractClass`]).
 pub type FlattenedSierraClass = codegen::ContractClass;
 /// Inner contract execution error (alias for [`InnerContractExecutionErrorFrame`]).
 pub type InnerContractExecutionError = InnerContractExecutionErrorFrame;

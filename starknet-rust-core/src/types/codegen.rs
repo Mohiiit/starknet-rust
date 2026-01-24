@@ -31,6 +31,7 @@
 #![allow(clippy::all)]
 #![allow(clippy::wildcard_imports)]
 #![allow(clippy::struct_field_names)]
+#![allow(clippy::use_self)]
 #![allow(dead_code)]
 #![allow(unused_imports)]
 #![allow(unreachable_pub)]
