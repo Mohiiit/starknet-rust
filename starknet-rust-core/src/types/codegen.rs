@@ -64,6 +64,10 @@ pub type BroadcastedDeclareTransaction = BroadcastedDeclareTransactionV3;
 pub type ContractExecutionError = ContractExecutionErrorInner;
 pub type TransactionStatusWithoutL1 = SequencerTransactionStatus;
 
+fn is_felt_zero(value: &Felt) -> bool {
+    *value == Felt::ZERO
+}
+
 /// An internal node whose both children are non-zero.
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -3282,6 +3286,7 @@ impl Serialize for DeclareTransactionV1 {
             pub nonce: &'a Felt,
             #[serde_as(as = "UfeHex")]
             pub class_hash: &'a Felt,
+            #[serde(skip_serializing_if = "is_felt_zero")]
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a Felt,
         }
@@ -4470,6 +4475,7 @@ impl Serialize for InvokeTransactionV3 {
             #[serde(skip_serializing_if = "Option::is_none")]
             #[serde_as(as = "Option<Vec<UfeHex>>")]
             pub proof_facts: &'a Option<Vec<Felt>>,
+            #[serde(skip_serializing_if = "is_felt_zero")]
             #[serde_as(as = "UfeHex")]
             pub transaction_hash: &'a Felt,
         }
