@@ -55,8 +55,22 @@ pub use codegen::{
 pub type FlattenedSierraClass = codegen::ContractClass;
 /// Inner contract execution error (alias for [`InnerContractExecutionErrorFrame`]).
 pub type InnerContractExecutionError = InnerContractExecutionErrorFrame;
-/// L1 data availability mode (alias for [`DataAvailabilityMode`]).
-pub type L1DataAvailabilityMode = DataAvailabilityMode;
+/// L1 data availability mode for block data.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum L1DataAvailabilityMode {
+    /// Legacy L1 data availability mode.
+    #[serde(rename = "L1")]
+    L1,
+    /// Legacy L2 data availability mode.
+    #[serde(rename = "L2")]
+    L2,
+    /// Call data data-availability mode.
+    #[serde(rename = "CALLDATA")]
+    Calldata,
+    /// Blob data-availability mode.
+    #[serde(rename = "BLOB")]
+    Blob,
+}
 /// Storage entry (alias for [`StorageDiffItem`]).
 pub type StorageEntry = StorageDiffItem;
 /// Storage proof (alias for [`StorageProofResult`]).
