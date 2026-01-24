@@ -2,7 +2,7 @@ use starknet_rust_accounts::{
     Account, AccountError, ConnectedAccount, ExecutionEncoding, SingleOwnerAccount,
 };
 use starknet_rust_core::{
-    types::{Call, ContractExecutionError, Felt, StarknetError, contract::SierraClass},
+    types::{Call, ContractExecutionErrorInner, Felt, StarknetError, contract::SierraClass},
     utils::get_selector_from_name,
 };
 use starknet_rust_providers::{Provider, ProviderError, SequencerGatewayProvider};
@@ -167,8 +167,8 @@ async fn can_parse_fee_estimation_error_inner<P: Provider + Send + Sync>(
         Err(AccountError::Provider(ProviderError::StarknetError(
             StarknetError::TransactionExecutionError(err_data),
         ))) => match err_data.execution_error {
-            ContractExecutionError::Nested(_) => {}
-            ContractExecutionError::Message(_) => {
+            ContractExecutionErrorInner::Frame(_) => {}
+            ContractExecutionErrorInner::Message(_) => {
                 panic!("unexpected error data type")
             }
         },
@@ -278,13 +278,13 @@ async fn can_estimate_declare_v3_fee_inner<P: Provider + Send + Sync>(provider: 
     // Cairo 1 contract classes are not allowed to be declared multiple times. We spam the network
     // by exploiting the fact that ABI is part of the class hash.
     let mut flattened_class = contract_artifact.flatten().unwrap();
-    flattened_class.abi = format!(
+    flattened_class.abi = Some(format!(
         "Declared from starknet-rust test case. Timestamp (ms): {}",
         std::time::SystemTime::now()
             .duration_since(std::time::SystemTime::UNIX_EPOCH)
             .unwrap()
             .as_millis()
-    );
+    ));
 
     let result = account
         .declare_v3(
@@ -328,13 +328,13 @@ async fn can_declare_cairo1_contract_v3_inner<P: Provider + Send + Sync>(
     // Cairo 1 contract classes are not allowed to be declared multiple times. We spam the network
     // by exploiting the fact that ABI is part of the class hash.
     let mut flattened_class = contract_artifact.flatten().unwrap();
-    flattened_class.abi = format!(
+    flattened_class.abi = Some(format!(
         "Declared from starknet-rust test case. Timestamp (ms): {}",
         std::time::SystemTime::now()
             .duration_since(std::time::SystemTime::UNIX_EPOCH)
             .unwrap()
             .as_millis()
-    );
+    ));
 
     let result = account
         .declare_v3(

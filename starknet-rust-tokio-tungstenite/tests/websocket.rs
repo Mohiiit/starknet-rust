@@ -99,7 +99,12 @@ async fn websocket_transaction_status_subscription() {
         panic!("Unexpected update type");
     };
 
-    assert!(status.status.is_accepted_on_l1());
+    assert!(
+        status
+            .status
+            .expect("missing transaction status")
+            .is_accepted_on_l1()
+    );
 }
 
 #[tokio::test]
@@ -142,5 +147,5 @@ async fn websocket_new_transactions_subscription() {
         panic!("Unexpected update type");
     };
 
-    assert_ne!(tx.txn.transaction_hash(), &Felt::ZERO);
+    assert_ne!(tx.txn_with_hash.txn.transaction_hash(), &Felt::ZERO);
 }
