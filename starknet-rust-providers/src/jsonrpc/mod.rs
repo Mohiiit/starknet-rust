@@ -1000,14 +1000,14 @@ where
         let block_id = match block_id.as_ref() {
             ConfirmedBlockId::Hash(h) => BlockId::Hash(*h),
             ConfirmedBlockId::Number(n) => BlockId::Number(*n),
-            ConfirmedBlockId::Latest => BlockId::Tag(BlockTag::Latest),
-            ConfirmedBlockId::L1Accepted => BlockId::Tag(BlockTag::Latest),
+            ConfirmedBlockId::Latest | ConfirmedBlockId::L1Accepted => {
+                BlockId::Tag(BlockTag::Latest)
+            }
         };
         // Convert slices to owned Option<Vec<T>>
-        let class_hashes: Option<Vec<FeltPrimitive>> =
-            Some(class_hashes.as_ref().iter().copied().collect());
+        let class_hashes: Option<Vec<FeltPrimitive>> = Some(class_hashes.as_ref().to_vec());
         let contract_addresses: Option<Vec<FeltPrimitive>> =
-            Some(contract_addresses.as_ref().iter().copied().collect());
+            Some(contract_addresses.as_ref().to_vec());
         let contracts_storage_keys: Option<Vec<ContractStorageKeys>> =
             Some(contracts_storage_keys.as_ref().to_vec());
         self.send_request(
@@ -1130,8 +1130,10 @@ where
         let block_id = match block_id.as_ref() {
             ConfirmedBlockId::Hash(h) => BlockId::Hash(*h),
             ConfirmedBlockId::Number(n) => BlockId::Number(*n),
-            ConfirmedBlockId::Latest => BlockId::Tag(BlockTag::Latest),
-            ConfirmedBlockId::L1Accepted => BlockId::Tag(BlockTag::Latest), // L1Accepted maps to Latest for now
+            ConfirmedBlockId::Latest | ConfirmedBlockId::L1Accepted => {
+                // L1Accepted maps to Latest for now
+                BlockId::Tag(BlockTag::Latest)
+            }
         };
         self.send_request(
             JsonRpcMethod::TraceBlockTransactions,
