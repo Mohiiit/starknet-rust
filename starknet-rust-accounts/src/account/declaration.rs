@@ -53,6 +53,10 @@ impl<'a, A> DeclarationV3<'a, A> {
             gas_estimate_multiplier: 1.5,
             gas_price_estimate_multiplier: 1.5,
             tip: None,
+            paymaster_data: Vec::new(),
+            account_deployment_data: Vec::new(),
+            nonce_data_availability_mode: DataAvailabilityMode::L1,
+            fee_data_availability_mode: DataAvailabilityMode::L1,
         }
     }
 
@@ -140,6 +144,38 @@ impl<'a, A> DeclarationV3<'a, A> {
         }
     }
 
+    /// Returns a new [`DeclarationV3`] with the `paymaster_data`.
+    pub fn paymaster_data(self, paymaster_data: Vec<Felt>) -> Self {
+        Self {
+            paymaster_data,
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeclarationV3`] with the `account_deployment_data`.
+    pub fn account_deployment_data(self, account_deployment_data: Vec<Felt>) -> Self {
+        Self {
+            account_deployment_data,
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeclarationV3`] with the `nonce_data_availability_mode`.
+    pub fn nonce_data_availability_mode(self, mode: DataAvailabilityMode) -> Self {
+        Self {
+            nonce_data_availability_mode: mode,
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeclarationV3`] with the `fee_data_availability_mode`.
+    pub fn fee_data_availability_mode(self, mode: DataAvailabilityMode) -> Self {
+        Self {
+            fee_data_availability_mode: mode,
+            ..self
+        }
+    }
+
     /// Calling this function after manually specifying all optional fields turns [`DeclarationV3`]
     /// into [`PreparedDeclarationV3`]. Returns `Err` if any field is `None`.
     pub fn prepared(self) -> Result<PreparedDeclarationV3<'a, A>, NotPreparedError> {
@@ -165,6 +201,10 @@ impl<'a, A> DeclarationV3<'a, A> {
                 l1_data_gas,
                 l1_data_gas_price,
                 tip,
+                paymaster_data: self.paymaster_data,
+                account_deployment_data: self.account_deployment_data,
+                nonce_data_availability_mode: self.nonce_data_availability_mode,
+                fee_data_availability_mode: self.fee_data_availability_mode,
             },
         })
     }
@@ -372,6 +412,10 @@ where
                 l1_data_gas,
                 l1_data_gas_price,
                 tip,
+                paymaster_data: self.paymaster_data.clone(),
+                account_deployment_data: self.account_deployment_data.clone(),
+                nonce_data_availability_mode: self.nonce_data_availability_mode,
+                fee_data_availability_mode: self.fee_data_availability_mode,
             },
         })
     }
@@ -397,6 +441,10 @@ where
                 l1_data_gas: 0,
                 l1_data_gas_price: 0,
                 tip: 0,
+                paymaster_data: self.paymaster_data.clone(),
+                account_deployment_data: self.account_deployment_data.clone(),
+                nonce_data_availability_mode: self.nonce_data_availability_mode,
+                fee_data_availability_mode: self.fee_data_availability_mode,
             },
         };
         let declare = prepared.get_declare_request(true, skip_signature).await?;
@@ -450,6 +498,10 @@ where
                 l1_data_gas: self.l1_data_gas.unwrap_or_default(),
                 l1_data_gas_price: self.l1_data_gas_price.unwrap_or_default(),
                 tip: self.tip.unwrap_or_default(),
+                paymaster_data: self.paymaster_data.clone(),
+                account_deployment_data: self.account_deployment_data.clone(),
+                nonce_data_availability_mode: self.nonce_data_availability_mode,
+                fee_data_availability_mode: self.fee_data_availability_mode,
             },
         };
         let declare = prepared.get_declare_request(true, skip_signature).await?;
@@ -520,17 +572,41 @@ impl RawDeclarationV3 {
             fee_hasher.finalize()
         });
 
-        // Hard-coded empty `paymaster_data`
-        hasher.update(PoseidonHasher::new().finalize());
+        hasher.update({
+            let mut paymaster_hasher = PoseidonHasher::new();
+            self.paymaster_data
+                .iter()
+                .copied()
+                .for_each(|element| paymaster_hasher.update(element));
+            paymaster_hasher.finalize()
+        });
 
         hasher.update(chain_id);
         hasher.update(self.nonce);
 
-        // Hard-coded L1 DA mode for nonce and fee
-        hasher.update(Felt::ZERO);
+        hasher.update({
+            let nonce_mode: u64 = match self.nonce_data_availability_mode {
+                DataAvailabilityMode::L1 => 0,
+                DataAvailabilityMode::L2 => 1,
+            };
+            let fee_mode: u64 = match self.fee_data_availability_mode {
+                DataAvailabilityMode::L1 => 0,
+                DataAvailabilityMode::L2 => 1,
+            };
 
-        // Hard-coded empty `account_deployment_data`
-        hasher.update(PoseidonHasher::new().finalize());
+            // Per starknet-docs:
+            // 188 bits zero | nonce_mode (32 bits) | fee_mode (32 bits)
+            Felt::from((nonce_mode << 32) + fee_mode)
+        });
+
+        hasher.update({
+            let mut deployment_data_hasher = PoseidonHasher::new();
+            self.account_deployment_data
+                .iter()
+                .copied()
+                .for_each(|element| deployment_data_hasher.update(element));
+            deployment_data_hasher.finalize()
+        });
 
         hasher.update(self.contract_class.class_hash());
         hasher.update(self.compiled_class_hash);
@@ -649,14 +725,91 @@ where
                 },
             },
             tip: self.inner.tip,
-            // Hard-coded empty `paymaster_data`
-            paymaster_data: vec![],
-            // Hard-coded empty `account_deployment_data`
-            account_deployment_data: vec![],
-            // Hard-coded L1 DA mode for nonce and fee
-            nonce_data_availability_mode: DataAvailabilityMode::L1,
-            fee_data_availability_mode: DataAvailabilityMode::L1,
+            paymaster_data: self.inner.paymaster_data.clone(),
+            account_deployment_data: self.inner.account_deployment_data.clone(),
+            nonce_data_availability_mode: self.inner.nonce_data_availability_mode,
+            fee_data_availability_mode: self.inner.fee_data_availability_mode,
             is_query: query_only,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use starknet_rust_core::types::EntryPointsByType;
+
+    fn mk_raw(
+        paymaster_data: Vec<Felt>,
+        account_deployment_data: Vec<Felt>,
+        nonce_mode: DataAvailabilityMode,
+        fee_mode: DataAvailabilityMode,
+    ) -> RawDeclarationV3 {
+        let contract_class = Arc::new(FlattenedSierraClass {
+            sierra_program: vec![],
+            contract_class_version: "0.1.0".to_string(),
+            entry_points_by_type: EntryPointsByType {
+                constructor: vec![],
+                external: vec![],
+                l1_handler: vec![],
+            },
+            abi: String::new(),
+        });
+        let compiled_class_hash = Felt::from(0xCAFE_u64);
+
+        RawDeclarationV3 {
+            contract_class,
+            compiled_class_hash,
+            nonce: Felt::from(5_u64),
+            l1_gas: 10,
+            l1_gas_price: 20,
+            l2_gas: 30,
+            l2_gas_price: 40,
+            l1_data_gas: 50,
+            l1_data_gas_price: 60,
+            tip: 70,
+            paymaster_data,
+            account_deployment_data,
+            nonce_data_availability_mode: nonce_mode,
+            fee_data_availability_mode: fee_mode,
+        }
+    }
+
+    #[test]
+    fn declare_v3_hash_default_v3_fields() {
+        let raw = mk_raw(
+            vec![],
+            vec![],
+            DataAvailabilityMode::L1,
+            DataAvailabilityMode::L1,
+        );
+
+        let tx_hash = raw.transaction_hash(Felt::from(1_u64), Felt::from(0x1234_u64), false);
+
+        assert_eq!(
+            tx_hash,
+            Felt::from_hex_unchecked(
+                "0x3fc6ec9be3b9f33acdb152ef83b92738065e8e66bbdf2c99e07d74dfc1679a5"
+            )
+        );
+    }
+
+    #[test]
+    fn declare_v3_hash_non_empty_paymaster_and_deployment_data() {
+        let raw = mk_raw(
+            vec![Felt::from(0x111_u64), Felt::from(0x222_u64)],
+            vec![Felt::from(0x333_u64)],
+            DataAvailabilityMode::L1,
+            DataAvailabilityMode::L1,
+        );
+
+        let tx_hash = raw.transaction_hash(Felt::from(1_u64), Felt::from(0x1234_u64), false);
+
+        assert_eq!(
+            tx_hash,
+            Felt::from_hex_unchecked(
+                "0x596ae7acdc2c3348b822c9fec994cb09ff2bbca22e5c9b2d99b4b822261e904"
+            )
+        );
     }
 }
