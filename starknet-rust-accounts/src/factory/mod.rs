@@ -131,6 +131,9 @@ pub struct AccountDeploymentV3<'f, F> {
     gas_estimate_multiplier: f64,
     gas_price_estimate_multiplier: f64,
     tip: Option<u64>,
+    paymaster_data: Vec<Felt>,
+    nonce_data_availability_mode: DataAvailabilityMode,
+    fee_data_availability_mode: DataAvailabilityMode,
 }
 
 /// [`AccountDeploymentV3`] but with `nonce` and other transaction fee options already determined.
@@ -145,6 +148,9 @@ pub struct RawAccountDeploymentV3 {
     l1_data_gas: u64,
     l1_data_gas_price: u128,
     tip: u64,
+    paymaster_data: Vec<Felt>,
+    nonce_data_availability_mode: DataAvailabilityMode,
+    fee_data_availability_mode: DataAvailabilityMode,
 }
 
 /// [`RawAccountDeploymentV3`] but with a factory associated.
@@ -187,11 +193,14 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
             gas_estimate_multiplier: 1.5,
             gas_price_estimate_multiplier: 1.5,
             tip: None,
+            paymaster_data: Vec::new(),
+            nonce_data_availability_mode: DataAvailabilityMode::L1,
+            fee_data_availability_mode: DataAvailabilityMode::L1,
         }
     }
 
     /// Returns a new [`AccountDeploymentV3`] with the `nonce`.
-    pub const fn nonce(self, nonce: Felt) -> Self {
+    pub fn nonce(self, nonce: Felt) -> Self {
         Self {
             nonce: Some(nonce),
             ..self
@@ -199,7 +208,7 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
     }
 
     /// Returns a new [`AccountDeploymentV3`] with the `l1_gas`.
-    pub const fn l1_gas(self, l1_gas: u64) -> Self {
+    pub fn l1_gas(self, l1_gas: u64) -> Self {
         Self {
             l1_gas: Some(l1_gas),
             ..self
@@ -207,7 +216,7 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
     }
 
     /// Returns a new [`AccountDeploymentV3`] with the `l1_gas_price`.
-    pub const fn l1_gas_price(self, l1_gas_price: u128) -> Self {
+    pub fn l1_gas_price(self, l1_gas_price: u128) -> Self {
         Self {
             l1_gas_price: Some(l1_gas_price),
             ..self
@@ -215,7 +224,7 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
     }
 
     /// Returns a new [`AccountDeploymentV3`] with the `l2_gas`.
-    pub const fn l2_gas(self, l2_gas: u64) -> Self {
+    pub fn l2_gas(self, l2_gas: u64) -> Self {
         Self {
             l2_gas: Some(l2_gas),
             ..self
@@ -223,7 +232,7 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
     }
 
     /// Returns a new [`AccountDeploymentV3`] with the `l2_gas_price`.
-    pub const fn l2_gas_price(self, l2_gas_price: u128) -> Self {
+    pub fn l2_gas_price(self, l2_gas_price: u128) -> Self {
         Self {
             l2_gas_price: Some(l2_gas_price),
             ..self
@@ -231,7 +240,7 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
     }
 
     /// Returns a new [`AccountDeploymentV3`] with the `l1_data_gas`.
-    pub const fn l1_data_gas(self, l1_data_gas: u64) -> Self {
+    pub fn l1_data_gas(self, l1_data_gas: u64) -> Self {
         Self {
             l1_data_gas: Some(l1_data_gas),
             ..self
@@ -239,7 +248,7 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
     }
 
     /// Returns a new [`AccountDeploymentV3`] with the `l1_data_gas_price`.
-    pub const fn l1_data_gas_price(self, l1_data_gas_price: u128) -> Self {
+    pub fn l1_data_gas_price(self, l1_data_gas_price: u128) -> Self {
         Self {
             l1_data_gas_price: Some(l1_data_gas_price),
             ..self
@@ -249,7 +258,7 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
     /// Returns a new [`AccountDeploymentV3`] with the gas amount estimate multiplier.  The
     /// multiplier is used when the gas amount is not manually specified and must be fetched from a
     /// [`Provider`] instead.
-    pub const fn gas_estimate_multiplier(self, gas_estimate_multiplier: f64) -> Self {
+    pub fn gas_estimate_multiplier(self, gas_estimate_multiplier: f64) -> Self {
         Self {
             gas_estimate_multiplier,
             ..self
@@ -259,7 +268,7 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
     /// Returns a new [`AccountDeploymentV3`] with the gas price estimate multiplier.  The
     /// multiplier is used when the gas price is not manually specified and must be fetched from a
     /// [`Provider`] instead.
-    pub const fn gas_price_estimate_multiplier(self, gas_price_estimate_multiplier: f64) -> Self {
+    pub fn gas_price_estimate_multiplier(self, gas_price_estimate_multiplier: f64) -> Self {
         Self {
             gas_price_estimate_multiplier,
             ..self
@@ -267,9 +276,33 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
     }
 
     /// Returns a new [`AccountDeploymentV3`] with the `tip`.
-    pub const fn tip(self, tip: u64) -> Self {
+    pub fn tip(self, tip: u64) -> Self {
         Self {
             tip: Some(tip),
+            ..self
+        }
+    }
+
+    /// Returns a new [`AccountDeploymentV3`] with the `paymaster_data`.
+    pub fn paymaster_data(self, paymaster_data: Vec<Felt>) -> Self {
+        Self {
+            paymaster_data,
+            ..self
+        }
+    }
+
+    /// Returns a new [`AccountDeploymentV3`] with the `nonce_data_availability_mode`.
+    pub fn nonce_data_availability_mode(self, mode: DataAvailabilityMode) -> Self {
+        Self {
+            nonce_data_availability_mode: mode,
+            ..self
+        }
+    }
+
+    /// Returns a new [`AccountDeploymentV3`] with the `fee_data_availability_mode`.
+    pub fn fee_data_availability_mode(self, mode: DataAvailabilityMode) -> Self {
+        Self {
+            fee_data_availability_mode: mode,
             ..self
         }
     }
@@ -299,6 +332,9 @@ impl<'f, F> AccountDeploymentV3<'f, F> {
                 l1_data_gas,
                 l1_data_gas_price,
                 tip,
+                paymaster_data: self.paymaster_data,
+                nonce_data_availability_mode: self.nonce_data_availability_mode,
+                fee_data_availability_mode: self.fee_data_availability_mode,
             },
         })
     }
@@ -536,6 +572,9 @@ where
                 l1_data_gas,
                 l1_data_gas_price,
                 tip,
+                paymaster_data: self.paymaster_data.clone(),
+                nonce_data_availability_mode: self.nonce_data_availability_mode,
+                fee_data_availability_mode: self.fee_data_availability_mode,
             },
         })
     }
@@ -558,6 +597,9 @@ where
                 l1_data_gas: 0,
                 l1_data_gas_price: 0,
                 tip: 0,
+                paymaster_data: self.paymaster_data.clone(),
+                nonce_data_availability_mode: self.nonce_data_availability_mode,
+                fee_data_availability_mode: self.fee_data_availability_mode,
             },
         };
         let deploy = prepared
@@ -610,6 +652,9 @@ where
                 l1_data_gas: self.l1_data_gas.unwrap_or_default(),
                 l1_data_gas_price: self.l1_data_gas_price.unwrap_or_default(),
                 tip: self.tip.unwrap_or_default(),
+                paymaster_data: self.paymaster_data.clone(),
+                nonce_data_availability_mode: self.nonce_data_availability_mode,
+                fee_data_availability_mode: self.fee_data_availability_mode,
             },
         };
         let deploy = prepared
@@ -753,14 +798,33 @@ where
             fee_hasher.finalize()
         });
 
-        // Hard-coded empty `paymaster_data`
-        hasher.update(PoseidonHasher::new().finalize());
+        hasher.update({
+            let mut paymaster_hasher = PoseidonHasher::new();
+            self.inner
+                .paymaster_data
+                .iter()
+                .copied()
+                .for_each(|element| paymaster_hasher.update(element));
+            paymaster_hasher.finalize()
+        });
 
         hasher.update(self.factory.chain_id());
         hasher.update(self.inner.nonce);
 
-        // Hard-coded L1 DA mode for nonce and fee
-        hasher.update(Felt::ZERO);
+        hasher.update({
+            let nonce_mode: u64 = match self.inner.nonce_data_availability_mode {
+                DataAvailabilityMode::L1 => 0,
+                DataAvailabilityMode::L2 => 1,
+            };
+            let fee_mode: u64 = match self.inner.fee_data_availability_mode {
+                DataAvailabilityMode::L1 => 0,
+                DataAvailabilityMode::L2 => 1,
+            };
+
+            // Per starknet-docs:
+            // 188 bits zero | nonce_mode (32 bits) | fee_mode (32 bits)
+            Felt::from((nonce_mode << 32) + fee_mode)
+        });
 
         hasher.update({
             let mut calldata_hasher = PoseidonHasher::new();
@@ -827,11 +891,9 @@ where
                 },
             },
             tip: self.inner.tip,
-            // Hard-coded empty `paymaster_data`
-            paymaster_data: vec![],
-            // Hard-coded L1 DA mode for nonce and fee
-            nonce_data_availability_mode: DataAvailabilityMode::L1,
-            fee_data_availability_mode: DataAvailabilityMode::L1,
+            paymaster_data: self.inner.paymaster_data.clone(),
+            nonce_data_availability_mode: self.inner.nonce_data_availability_mode,
+            fee_data_availability_mode: self.inner.fee_data_availability_mode,
             is_query: query_only,
         })
     }
@@ -846,4 +908,140 @@ fn calculate_contract_address(salt: Felt, class_hash: Felt, constructor_calldata
         compute_hash_on_elements(constructor_calldata),
     ])
     .mod_floor(&ADDR_BOUND)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use starknet_rust_providers::{JsonRpcClient, Url, jsonrpc::HttpTransport};
+
+    struct DummyFactory {
+        provider: JsonRpcClient<HttpTransport>,
+    }
+
+    #[async_trait]
+    impl AccountFactory for DummyFactory {
+        type Provider = JsonRpcClient<HttpTransport>;
+        type SignError = core::convert::Infallible;
+
+        fn class_hash(&self) -> Felt {
+            Felt::from(0xDEAD_BEEFu64)
+        }
+
+        fn calldata(&self) -> Vec<Felt> {
+            vec![]
+        }
+
+        fn chain_id(&self) -> Felt {
+            Felt::from(1_u64)
+        }
+
+        fn provider(&self) -> &Self::Provider {
+            &self.provider
+        }
+
+        fn is_signer_interactive(&self) -> bool {
+            false
+        }
+
+        async fn sign_deployment_v3(
+            &self,
+            _deployment: &RawAccountDeploymentV3,
+            _query_only: bool,
+        ) -> Result<Vec<Felt>, Self::SignError> {
+            Ok(vec![])
+        }
+    }
+
+    fn mk_factory() -> DummyFactory {
+        DummyFactory {
+            provider: JsonRpcClient::new(HttpTransport::new(
+                Url::parse("http://localhost:0").unwrap(),
+            )),
+        }
+    }
+
+    fn mk_deployment(
+        factory: &DummyFactory,
+        paymaster_data: Vec<Felt>,
+        nonce_mode: DataAvailabilityMode,
+        fee_mode: DataAvailabilityMode,
+    ) -> AccountDeploymentV3<'_, DummyFactory> {
+        factory
+            .deploy_v3(Felt::from(0x999_u64))
+            .nonce(Felt::from(5_u64))
+            .l1_gas(10)
+            .l1_gas_price(20)
+            .l2_gas(30)
+            .l2_gas_price(40)
+            .l1_data_gas(50)
+            .l1_data_gas_price(60)
+            .tip(70)
+            .paymaster_data(paymaster_data)
+            .nonce_data_availability_mode(nonce_mode)
+            .fee_data_availability_mode(fee_mode)
+    }
+
+    #[test]
+    fn deploy_account_v3_hash_default_v3_fields() {
+        let factory = mk_factory();
+        let deployment = mk_deployment(
+            &factory,
+            vec![],
+            DataAvailabilityMode::L1,
+            DataAvailabilityMode::L1,
+        );
+
+        let prepared = deployment.prepared().unwrap();
+        let tx_hash = prepared.transaction_hash(false);
+
+        assert_eq!(
+            tx_hash,
+            Felt::from_hex_unchecked(
+                "0x6a83abe96f669a378c365390bf6f4d933937496050fbe35b00efc968937612f"
+            )
+        );
+    }
+
+    #[test]
+    fn deploy_account_v3_hash_non_empty_paymaster_data() {
+        let factory = mk_factory();
+        let deployment = mk_deployment(
+            &factory,
+            vec![Felt::from(0x111_u64), Felt::from(0x222_u64)],
+            DataAvailabilityMode::L1,
+            DataAvailabilityMode::L1,
+        );
+
+        let prepared = deployment.prepared().unwrap();
+        let tx_hash = prepared.transaction_hash(false);
+
+        assert_eq!(
+            tx_hash,
+            Felt::from_hex_unchecked(
+                "0x49f400752f1521d806923352a99fd136646ceea3e0dde5e9ac90b705d5a8dc3"
+            )
+        );
+    }
+
+    #[test]
+    fn deploy_account_v3_hash_includes_da_modes() {
+        let factory = mk_factory();
+        let deployment = mk_deployment(
+            &factory,
+            vec![Felt::from(0x111_u64), Felt::from(0x222_u64)],
+            DataAvailabilityMode::L2,
+            DataAvailabilityMode::L1,
+        );
+
+        let prepared = deployment.prepared().unwrap();
+        let tx_hash = prepared.transaction_hash(false);
+
+        assert_eq!(
+            tx_hash,
+            Felt::from_hex_unchecked(
+                "0x60fcdef49b2d453e6d349b87f0a42b589be01d6ee5f2b543822666a5ab08f86"
+            )
+        );
+    }
 }
