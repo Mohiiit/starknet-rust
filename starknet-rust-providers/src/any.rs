@@ -53,7 +53,7 @@ impl Provider for AnyProvider {
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        Ok(match self.get_block_with_tx_hashes(block_id, None).await? {
+        Ok(match self.get_block_with_tx_hashes(block_id).await? {
             MaybePreConfirmedBlockWithTxHashes::Block(block) => block.starknet_version,
             MaybePreConfirmedBlockWithTxHashes::PreConfirmedBlock(block) => block.starknet_version,
         })
@@ -62,7 +62,6 @@ impl Provider for AnyProvider {
     async fn get_block_with_tx_hashes<B>(
         &self,
         block_id: B,
-        response_flags: Option<&[TransactionResponseFlag]>,
     ) -> Result<MaybePreConfirmedBlockWithTxHashes, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
@@ -70,19 +69,13 @@ impl Provider for AnyProvider {
         match self {
             Self::JsonRpcHttp(inner) => {
                 <JsonRpcClient<HttpTransport> as Provider>::get_block_with_tx_hashes(
-                    inner,
-                    block_id,
-                    response_flags,
+                    inner, block_id,
                 )
                 .await
             }
             Self::SequencerGateway(inner) => {
-                <SequencerGatewayProvider as Provider>::get_block_with_tx_hashes(
-                    inner,
-                    block_id,
-                    response_flags,
-                )
-                .await
+                <SequencerGatewayProvider as Provider>::get_block_with_tx_hashes(inner, block_id)
+                    .await
             }
         }
     }
@@ -215,7 +208,6 @@ impl Provider for AnyProvider {
     async fn get_transaction_status<H>(
         &self,
         transaction_hash: H,
-        response_flags: Option<&[TransactionResponseFlag]>,
     ) -> Result<TransactionStatus, ProviderError>
     where
         H: AsRef<Felt> + Send + Sync,
@@ -225,7 +217,6 @@ impl Provider for AnyProvider {
                 <JsonRpcClient<HttpTransport> as Provider>::get_transaction_status(
                     inner,
                     transaction_hash,
-                    response_flags,
                 )
                 .await
             }
@@ -233,7 +224,6 @@ impl Provider for AnyProvider {
                 <SequencerGatewayProvider as Provider>::get_transaction_status(
                     inner,
                     transaction_hash,
-                    response_flags,
                 )
                 .await
             }
@@ -302,7 +292,6 @@ impl Provider for AnyProvider {
     async fn get_transaction_receipt<H>(
         &self,
         transaction_hash: H,
-        response_flags: Option<&[TransactionResponseFlag]>,
     ) -> Result<TransactionReceiptWithBlockInfo, ProviderError>
     where
         H: AsRef<Felt> + Send + Sync,
@@ -312,7 +301,6 @@ impl Provider for AnyProvider {
                 <JsonRpcClient<HttpTransport> as Provider>::get_transaction_receipt(
                     inner,
                     transaction_hash,
-                    response_flags,
                 )
                 .await
             }
@@ -320,7 +308,6 @@ impl Provider for AnyProvider {
                 <SequencerGatewayProvider as Provider>::get_transaction_receipt(
                     inner,
                     transaction_hash,
-                    response_flags,
                 )
                 .await
             }

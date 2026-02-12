@@ -52,28 +52,20 @@ impl Provider for SequencerGatewayProvider {
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        Ok(
-            match self
-                .get_block_with_tx_hashes(block_id, response_flags)
-                .await?
-            {
-                MaybePreConfirmedBlockWithTxHashes::Block(block) => block.starknet_version,
-                MaybePreConfirmedBlockWithTxHashes::PreConfirmedBlock(block) => {
-                    block.starknet_version
-                }
-            },
-        )
+        let _ = response_flags;
+        Ok(match self.get_block_with_tx_hashes(block_id).await? {
+            MaybePreConfirmedBlockWithTxHashes::Block(block) => block.starknet_version,
+            MaybePreConfirmedBlockWithTxHashes::PreConfirmedBlock(block) => block.starknet_version,
+        })
     }
 
     async fn get_block_with_tx_hashes<B>(
         &self,
         block_id: B,
-        response_flags: Option<&[TransactionResponseFlag]>,
     ) -> Result<MaybePreConfirmedBlockWithTxHashes, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync,
     {
-        let _ = response_flags;
         Ok(self
             .get_block(block_id.as_ref().to_owned().try_into()?)
             .await?
@@ -156,13 +148,10 @@ impl Provider for SequencerGatewayProvider {
     async fn get_transaction_status<H>(
         &self,
         transaction_hash: H,
-        response_flags: Option<&[TransactionResponseFlag]>,
     ) -> Result<TransactionStatus, ProviderError>
     where
         H: AsRef<Felt> + Send + Sync,
     {
-        let _ = response_flags;
-
         let status = self
             .get_transaction_status(*transaction_hash.as_ref())
             .await?;
@@ -224,12 +213,10 @@ impl Provider for SequencerGatewayProvider {
     async fn get_transaction_receipt<H>(
         &self,
         transaction_hash: H,
-        response_flags: Option<&[TransactionResponseFlag]>,
     ) -> Result<TransactionReceiptWithBlockInfo, ProviderError>
     where
         H: AsRef<Felt> + Send + Sync,
     {
-        let _ = response_flags;
         let transaction_hash = *transaction_hash.as_ref();
 
         let tx_info = self.get_transaction(transaction_hash).await?;

@@ -73,7 +73,6 @@ pub trait Provider {
     async fn get_block_with_tx_hashes<B>(
         &self,
         block_id: B,
-        response_flags: Option<&[TransactionResponseFlag]>,
     ) -> Result<MaybePreConfirmedBlockWithTxHashes, ProviderError>
     where
         B: AsRef<BlockId> + Send + Sync;
@@ -128,7 +127,6 @@ pub trait Provider {
     async fn get_transaction_status<H>(
         &self,
         transaction_hash: H,
-        response_flags: Option<&[TransactionResponseFlag]>,
     ) -> Result<TransactionStatus, ProviderError>
     where
         H: AsRef<Felt> + Send + Sync;
@@ -156,7 +154,6 @@ pub trait Provider {
     async fn get_transaction_receipt<H>(
         &self,
         transaction_hash: H,
-        response_flags: Option<&[TransactionResponseFlag]>,
     ) -> Result<TransactionReceiptWithBlockInfo, ProviderError>
     where
         H: AsRef<Felt> + Send + Sync;

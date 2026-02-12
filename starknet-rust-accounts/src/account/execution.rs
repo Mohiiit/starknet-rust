@@ -345,10 +345,7 @@ where
                         let block = self
                             .account
                             .provider()
-                            .get_block_with_tx_hashes(
-                                self.account.block_id(),
-                                self.response_flags.as_deref(),
-                            )
+                            .get_block_with_tx_hashes(self.account.block_id())
                             .await
                             .map_err(AccountError::Provider)?;
                         (

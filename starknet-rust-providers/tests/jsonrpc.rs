@@ -46,7 +46,7 @@ async fn jsonrpc_get_block_with_tx_hashes_with_latest() {
     let rpc_client = create_jsonrpc_client();
 
     let block = rpc_client
-        .get_block_with_tx_hashes(BlockId::Tag(BlockTag::Latest), None)
+        .get_block_with_tx_hashes(BlockId::Tag(BlockTag::Latest))
         .await
         .unwrap();
 
@@ -65,7 +65,7 @@ async fn jsonrpc_get_block_with_tx_hashes_with_l1_accepted() {
     let rpc_client = create_jsonrpc_client();
 
     let block = rpc_client
-        .get_block_with_tx_hashes(BlockId::Tag(BlockTag::L1Accepted), None)
+        .get_block_with_tx_hashes(BlockId::Tag(BlockTag::L1Accepted))
         .await
         .unwrap();
 
@@ -244,7 +244,6 @@ async fn jsonrpc_get_transaction_status_succeeded() {
         .get_transaction_status(
             Felt::from_hex("03f786ecc4955a2602c91a291328518ef866cb7f3d50e4b16fd42282952623aa")
                 .unwrap(),
-            None,
         )
         .await
         .unwrap();
@@ -263,7 +262,6 @@ async fn jsonrpc_get_transaction_status_reverted() {
         .get_transaction_status(
             Felt::from_hex("02f00c7f28df2197196440747f97baa63d0851e3b0cfc2efedb6a88a7ef78cb1")
                 .unwrap(),
-            None,
         )
         .await
         .unwrap();
@@ -483,7 +481,6 @@ async fn jsonrpc_get_transaction_receipt_invoke() {
         .get_transaction_receipt(
             Felt::from_hex("03f786ecc4955a2602c91a291328518ef866cb7f3d50e4b16fd42282952623aa")
                 .unwrap(),
-            None,
         )
         .await
         .unwrap();
@@ -508,7 +505,6 @@ async fn jsonrpc_get_transaction_receipt_invoke_reverted() {
         .get_transaction_receipt(
             Felt::from_hex("02f00c7f28df2197196440747f97baa63d0851e3b0cfc2efedb6a88a7ef78cb1")
                 .unwrap(),
-            None,
         )
         .await
         .unwrap();
@@ -536,10 +532,7 @@ async fn jsonrpc_get_transaction_receipt_l1_handler() {
         .get_transaction_by_hash(tx_hash, None)
         .await
         .unwrap();
-    let receipt = rpc_client
-        .get_transaction_receipt(tx_hash, None)
-        .await
-        .unwrap();
+    let receipt = rpc_client.get_transaction_receipt(tx_hash).await.unwrap();
 
     let Transaction::L1Handler(tx) = tx else {
         panic!("unexpected tx type")
@@ -567,7 +560,6 @@ async fn jsonrpc_get_transaction_receipt_declare() {
         .get_transaction_receipt(
             Felt::from_hex("01936a09e5aaee208fc0f7cc826e126d421c3ac9aca2c789605e1e919e399185")
                 .unwrap(),
-            None,
         )
         .await
         .unwrap();
@@ -595,7 +587,6 @@ async fn jsonrpc_get_transaction_receipt_deploy_account() {
         .get_transaction_receipt(
             Felt::from_hex("024ed6b82e2f6d3a811ec180a25c1ccd0bdc7bdba8ebd709de2ed697a1e82193")
                 .unwrap(),
-            None,
         )
         .await
         .unwrap();
@@ -1235,27 +1226,6 @@ impl JsonRpcTransport for MockTransportResponse {
 }
 
 #[tokio::test]
-async fn jsonrpc_get_block_with_tx_hashes_passes_response_flags() {
-    let transport = MockTransport::new(
-        JsonRpcMethod::GetBlockWithTxHashes,
-        json!({
-            "block_id": "latest",
-            "response_flags": ["INCLUDE_PROOF_FACTS"]
-        }),
-    );
-    let rpc_client = JsonRpcClient::new(transport);
-
-    let result = rpc_client
-        .get_block_with_tx_hashes(
-            BlockId::Tag(BlockTag::Latest),
-            Some(&[TransactionResponseFlag::IncludeProofFacts]),
-        )
-        .await;
-
-    assert!(result.is_err());
-}
-
-#[tokio::test]
 async fn jsonrpc_get_block_with_txs_passes_response_flags() {
     let transport = MockTransport::new(
         JsonRpcMethod::GetBlockWithTxs,
@@ -1292,6 +1262,57 @@ async fn jsonrpc_get_block_with_receipts_passes_response_flags() {
             BlockId::Tag(BlockTag::Latest),
             Some(&[TransactionResponseFlag::IncludeProofFacts]),
         )
+        .await;
+
+    assert!(result.is_err());
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_hash_passes_response_flags() {
+    let tx_hash = Felt::from_hex("0x1234").unwrap();
+    let flags = [TransactionResponseFlag::IncludeProofFacts];
+
+    let expected_params = serde_json::to_value(
+        starknet_rust_core::types::requests::GetTransactionByHashRequestRef {
+            transaction_hash: &tx_hash,
+            response_flags: Some(&flags),
+        },
+    )
+    .unwrap();
+
+    let transport = MockTransport::new(JsonRpcMethod::GetTransactionByHash, expected_params);
+    let rpc_client = JsonRpcClient::new(transport);
+
+    let result = rpc_client
+        .get_transaction_by_hash(tx_hash, Some(&flags))
+        .await;
+
+    assert!(result.is_err());
+}
+
+#[tokio::test]
+async fn jsonrpc_get_transaction_by_block_id_and_index_passes_response_flags() {
+    let block_id = BlockId::Tag(BlockTag::Latest);
+    let index = 0u64;
+    let flags = [TransactionResponseFlag::IncludeProofFacts];
+
+    let expected_params = serde_json::to_value(
+        starknet_rust_core::types::requests::GetTransactionByBlockIdAndIndexRequestRef {
+            block_id: &block_id,
+            index: &index,
+            response_flags: Some(&flags),
+        },
+    )
+    .unwrap();
+
+    let transport = MockTransport::new(
+        JsonRpcMethod::GetTransactionByBlockIdAndIndex,
+        expected_params,
+    );
+    let rpc_client = JsonRpcClient::new(transport);
+
+    let result = rpc_client
+        .get_transaction_by_block_id_and_index(block_id, index, Some(&flags))
         .await;
 
     assert!(result.is_err());
@@ -1346,7 +1367,7 @@ async fn jsonrpc_get_block_with_tx_hashes_real_fixture() {
     let rpc_client = JsonRpcClient::new(transport);
 
     let block = rpc_client
-        .get_block_with_tx_hashes(BlockId::Number(7_211_391), None)
+        .get_block_with_tx_hashes(BlockId::Number(7_211_391))
         .await
         .unwrap();
 

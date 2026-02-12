@@ -369,7 +369,7 @@ async fn wait_for_receipt<P: Provider + Send + Sync>(
 ) -> starknet_rust_core::types::TransactionReceiptWithBlockInfo {
     let deadline = Instant::now() + RECEIPT_TIMEOUT;
     loop {
-        match provider.get_transaction_receipt(tx_hash, None).await {
+        match provider.get_transaction_receipt(tx_hash).await {
             Ok(receipt) => return receipt,
             Err(ProviderError::StarknetError(StarknetError::TransactionHashNotFound)) => {
                 if Instant::now() < deadline {

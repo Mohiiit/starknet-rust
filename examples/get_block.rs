@@ -13,7 +13,7 @@ async fn main() {
     ));
 
     let latest_block = provider
-        .get_block_with_tx_hashes(BlockId::Tag(BlockTag::Latest), None)
+        .get_block_with_tx_hashes(BlockId::Tag(BlockTag::Latest))
         .await;
     println!("{latest_block:#?}");
 }
