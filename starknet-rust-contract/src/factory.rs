@@ -1,6 +1,9 @@
 use starknet_rust_accounts::{Account, AccountError, ConnectedAccount, ExecutionV3};
 use starknet_rust_core::{
-    types::{Call, FeeEstimate, Felt, InvokeTransactionResult, SimulatedTransaction},
+    types::{
+        Call, DataAvailabilityMode, FeeEstimate, Felt, InvokeTransactionResult,
+        SimulatedTransaction,
+    },
     utils::{UdcUniqueSettings, UdcUniqueness, get_udc_deployed_address},
 };
 
@@ -57,6 +60,10 @@ pub struct DeploymentV3<'f, A> {
     gas_estimate_multiplier: f64,
     gas_price_estimate_multiplier: f64,
     tip: Option<u64>,
+    paymaster_data: Vec<Felt>,
+    account_deployment_data: Vec<Felt>,
+    nonce_data_availability_mode: DataAvailabilityMode,
+    fee_data_availability_mode: DataAvailabilityMode,
 }
 
 /// Specifies the Universal Deployer Contract to be used.
@@ -120,6 +127,10 @@ where
             gas_estimate_multiplier: 1.5,
             gas_price_estimate_multiplier: 1.5,
             tip: None,
+            paymaster_data: Vec::new(),
+            account_deployment_data: Vec::new(),
+            nonce_data_availability_mode: DataAvailabilityMode::L1,
+            fee_data_availability_mode: DataAvailabilityMode::L1,
         }
     }
 
@@ -217,6 +228,38 @@ impl<A> DeploymentV3<'_, A> {
     pub fn tip(self, tip: u64) -> Self {
         Self {
             tip: Some(tip),
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeploymentV3`] with the `paymaster_data`.
+    pub fn paymaster_data(self, paymaster_data: Vec<Felt>) -> Self {
+        Self {
+            paymaster_data,
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeploymentV3`] with the `account_deployment_data`.
+    pub fn account_deployment_data(self, account_deployment_data: Vec<Felt>) -> Self {
+        Self {
+            account_deployment_data,
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeploymentV3`] with the `nonce_data_availability_mode`.
+    pub fn nonce_data_availability_mode(self, mode: DataAvailabilityMode) -> Self {
+        Self {
+            nonce_data_availability_mode: mode,
+            ..self
+        }
+    }
+
+    /// Returns a new [`DeploymentV3`] with the `fee_data_availability_mode`.
+    pub fn fee_data_availability_mode(self, mode: DataAvailabilityMode) -> Self {
+        Self {
+            fee_data_availability_mode: mode,
             ..self
         }
     }
@@ -338,6 +381,14 @@ impl<'f, A> From<&DeploymentV3<'f, A>> for ExecutionV3<'f, A> {
         } else {
             execution
         };
+
+        let execution = execution.paymaster_data(value.paymaster_data.clone());
+
+        let execution = execution.account_deployment_data(value.account_deployment_data.clone());
+
+        let execution = execution.nonce_data_availability_mode(value.nonce_data_availability_mode);
+
+        let execution = execution.fee_data_availability_mode(value.fee_data_availability_mode);
 
         let execution = execution.gas_estimate_multiplier(value.gas_estimate_multiplier);
 
